@@ -34,13 +34,13 @@ git clone https://github.com/Harmalarm/CarmaKit.git
 cd CarmaKit
 
 # Create a Python 3.11 virtual environment (required for bpy module)
-python -m venv .venv311
+python -m venv .venv
 
 # Activate the environment
 # Windows:
-.venv311\Scripts\activate
+.venv\Scripts\activate
 # Linux/macOS:
-source .venv311/bin/activate
+source .venv/bin/activate
 
 # Install dependencies (includes headless Blender bpy module)
 pip install -r requirements.txt
@@ -54,7 +54,7 @@ This project uses **headless Blender** for testing via the `bpy` module. This al
 
 **Key points:**
 - Tests run using Python 3.11 with the `bpy` module from Blender's PyPI repository
-- The virtual environment `.venv311` is configured with the bpy package
+- Create a virtual environment with the bpy package to run tests
 - No Blender GUI installation is required for running tests
 
 ### Running Tests
@@ -62,7 +62,7 @@ This project uses **headless Blender** for testing via the `bpy` module. This al
 ```bash
 # Activate the virtual environment
 # Windows:
-.venv311\Scripts\activate
+.venv\Scripts\activate
 
 # Run all tests
 pytest tests/ -v
