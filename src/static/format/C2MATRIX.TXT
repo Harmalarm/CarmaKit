@@ -1,0 +1,246 @@
+Understanding the transformation matrix
+---------------------------------------
+
+by Dan L'Ecuyer
+
+  The transformation matrix is a very important tool in 3D games. It is a
+mathematical device which is used to rotate, scale and even distort an object
+in 3D space. The vehicle damage models in Carmageddon, for example, are
+fascinating examples of what can be done through the creative application of
+the transformation matrix. Fenders, bumpers, wheels and other vehicle parts
+can be made to appear damaged by distorting (shearing) the models using a
+mathematical trick applied to the transformation matrix. It is beyond the
+scope of this document to explain how this works but it will become obvious,
+I think, that the transformation matrix is wide open to all sorts of clever
+tampering.
+
+  The easy part about a t-matrix (I'll use this abbreviation to avoid a lot
+of typing) is actually using it. The matrix is arranged in this pattern:
+
+  Xx  Yx  Zx
+  Xy  Yy  Zy
+  Xz  Yz  Zz
+
+  Let's say that we have an arbitrary point in 3D space specified as "xyz".
+We want to apply the t-matrix in order to calculate the new position of this
+point in 3D space. Let's say that we are rotating the point around a circle
+whose centre point is "abc". First, we need to subtract "abc" from "xyz":
+
+  x = x - a
+  y = y - b
+  z = z - c
+
+  We do this because we need to ensure that the rotation will be relative to
+the centre of the circle and not the centre of the 3D world. So, we now have
+a new "xyz" to which we apply the matrix:
+
+  x = (x * Xx) + (y * Xy) + (z * Xz)
+  y = (x * Yx) + (y * Yy) + (z * Yz)
+  z = (x * Zx) + (y * Zy) + (z * Zz)
+
+  You can see why I named the nine cells in the matrix the way that I did.
+It helps to clarify the relationship of each cell to its usage in practice.
+Now we need to restore the absolute position in 3D space:
+
+  x = x + a
+  y = y + b
+  z = z + c
+
+  If the above algorithm is applied to every point in an object, the entire
+object will rotate in space. If the t-matrix was correctly derived then the
+operation will leave the object looking exactly the same but in a different
+place. A bad or deliberately distorted matrix will leave the object looking
+wrong or distorted.
+
+  The t-matrix can also be used to simply scale an object (making it bigger
+or smaller). The matrix would look like this:
+
+  1  0  0
+  0  2  0
+  0  0  1
+  
+  The effect of applying this matrix is that the object will grow twice as
+large in the Y direction. Observe the equations with the cell names replaced
+by their values:
+
+  x = (x * 1) + (y * 0) + (z * 0)
+  y = (x * 0) + (y * 2) + (z * 0)
+  z = (x * 0) + (y * 0) + (z * 1)
+
+  Makes perfect sense, right? The above matrix is known as a scaling matrix.
+An identity matrix is a scaling matrix where the scale values are all equal
+to 1. Applying the identity matrix leaves the object unchanged and unmoved
+(its original identity, so to speak).
+
+  Rotation is more complex because it involves sines and cosines. Other than
+the fact that you need to calculate the sine and cosine, rotation is really
+not too complicated. For example, to rotate an object around the Z-axis, we
+need to fill the matrix this way:
+
+  cos  sin  0
+ -sin  cos  0
+   0    0   1
+  
+  You just need to calculate the sine and cosine for the number of degrees of
+rotation and then pop the numbers into the matrix. Note that the sine value 
+is negated in one cell but the cosine value is not negated. This is an 
+important property of the t-matrix. It is a consequence of the fact that the
+sine and cosine each operate in different quadrants but don't worry about the
+math. Just remember this fact. For rotation around the X axis:
+
+  1    0     0
+  0   cos   sin
+  0  -sin   cos
+  
+Around the Y axis:
+  
+  cos  0  -sin
+   0   1    0
+  sin  0   cos
+
+  There's an obvious pattern to this. Compare the position of the sine and
+cosine values to the cell names and you'll see the pattern. Does it make
+sense to you? I hope it does. Let's move on to rotation around multiple axes.
+
+  Here's where it gets very tricky. We need to do something called matrix
+multiplication. Essentially, this works by multiplying the rows in the first
+matrix with the columns in the second matrix. For example, to perform a
+rotation around the X axis followed by a rotation around the Y axis, we need
+to multiply the rotation matrices for X and Y:
+
+  X1 X2 X3     Y1 Y2 Y3
+  X4 X5 X6  *  Y4 Y5 Y6  =
+  X7 X8 X9     Y7 Y8 Y9
+  
+  (X1*Y1 + X2*Y4 + X3*Y7)  (X1*Y2 + X2*Y5 + X3*Y8)  (X1*Y3 + X2*Y6 + X3*Y9)
+  (X4*Y1 + X5*Y4 + X6*Y7)  (X4*Y2 + X5*Y5 + X6*Y8)  (X4*Y3 + X5*Y6 + X6*Y9)
+  (X7*Y1 + X8*Y4 + X9*Y7)  (X7*Y2 + X8*Y5 + X9*Y8)  (X7*Y3 + X8*Y6 + X9*Y9)
+  
+  That is some pretty tedious arithmetic. Fortunately, we can take a shortcut
+because of those zeroes and ones that are in the X and Y matrices. The
+equations can be reduced to:
+
+  Y1      0    Y3
+  X6*Y7   X5   X6*Y9
+  X9*Y7   X8   X9*Y9
+
+Substituting with the sines and cosines:
+
+  cosY        0     -sinY
+  sinX*sinY   cosX   sinX*cosY
+  cosX*sinY  -sinX   cosX*cosY
+  
+  What if we want to rotate around the Z axis as well? In that case, the
+matrix which we have just derived will need to be multiplied with the matrix
+for rotation around Z. Rather than reproduce the same tedious math all over
+again, I'll give you the final equations. In fact, I will give you all of the
+equations for each of the possible rotation orders.
+
+Rotation around X, Y, and then Z:
+
+  cy*cz               cy*sz              -sy
+  sx*sy*cz - cx*sz    sx*sy*sz + cx*cz    sx*cy
+  cx*sy*cz + sx*sz    cx*sy*sz - sx*cz    cx*cy
+
+Rotation around Y, X, and then Z:
+
+  cy*cz - sx*sy*sz    cy*sz + sx*sy*cz   -cx*sy
+ -cx*sz               cx*cz               sx
+  sy*cz + sx*cy*sz    sy*sz - sx*cy*cz    cx*cy
+
+Rotation around X, Z, and then Y:
+
+  cy*cz               sz      -sy*cz
+  sx*sy - cx*cy*sz    cx*cz    sx*cy + cx*sy*sz
+  cx*sy + sx*cy*sz   -sx*cz    cx*cy - sx*sy*sz
+
+Rotation around Z, X, and then Y:
+
+  sx*sy*sz + cy*cz    cx*sz    sx*cy*sz - sy*cz
+  sx*sy*cz - cy*sz    cx*cz    sx*cy*cz + sy*sz
+  cx*sy              -sx       cx*cy
+
+Rotation around Y, Z, and then X:
+
+  cy*cz    cx*cy*sz + sx*sy    sx*cy*sz - cx*sy
+ -sz       cx*cz               sx*cz
+  sy*cz    cx*sy*sz - sx*cy    sx*sy*sz + cx*cy
+
+Rotation around Z, Y, and then X:
+
+  cy*cz    cx*sz + sx*sy*cz    sx*sz - cx*sy*cz
+ -cy*sz    cx*cz - sx*sy*sz    sx*cz + cx*sy*sz
+  sy      -sx*cy               cx*cy
+
+  I mentioned something earlier about the sine being negated in some of the
+cells (the cosine is always positive). This negation affects the direction of
+rotation around the axis. I have adjusted the equations to match the axis
+orientation used in Carmageddon. That is, the X axis increases toward the
+east, the Y axis increases toward the sky, and the Z axis increases toward
+the south. When considering the angle of rotation, you need to view the axis
+from the positive end toward the negative end. The rotation will be clockwise
+as the angle increases.
+
+  Now, here is how you will apply the equations. First of all, you need to
+know the desired angle of rotation around each of the axes. The sine and
+cosine for each of the angles must be computed (your programming language
+probably has this capability). For no rotation, use 0 for the sine and 1.0
+for the cosine. Oh, by the way, you do know that you will have to use
+floating point data types for this, huh?
+
+  You should name some temporary variables like this:
+  
+  cx, sx - cosine and sine for angle X
+  cy, sy - cosine and sine for angle Y
+  cz, sz - cosine and sine for angle Z
+  
+  This way, you can copy and paste the above equations into your program
+without having to change all of the names. You have nine equations to run and
+you will get one result for each of the nine cells in the t-matrix. Where
+should you put this matrix? Heck, that depends on why you are reading this
+tutorial. If you're writing some code for the Carmageddon game, I can tell
+you what to do with your numbers. Otherwise, you're on your own.
+
+  The most likely reason to want to compute a t-matrix for Carmageddon is to
+rotate a noncar object into position in the game. This means that you will be
+dropping your t-matrix into an ACT file. See the companion tutorial on the
+C2 file formats. Listed there is the record type for the t-matrix. I've also
+put a little picture like the one earlier in this tutorial. The nine numbers
+will need to have been computed using a 32-bit floating point data type. I
+have described the format for this data type in the companion tutorial. Make
+sure your programming language supports this data type exactly (if not then
+you have a problem and I can't help you). The nine numbers need to be written
+to the ACT file in this order: Xx Yx Zx Xy Yy Zy Xz Yz Zz. That's it.
+
+  The last thing I want to cover is another type of rotation. This is
+rotation around an arbitrary axis. You don't always want to rotate around the
+XYZ axes. Maybe your object needs to rotate around a pole but the pole is
+not exactly vertical so it's not clear how the heck you're going to rotate
+the object. Well, just use the pole as an axis. Here are the equations:
+
+  C = cos
+  S = sin
+  T = 1 - cos
+  X, Y, Z = axis
+
+  T*X*X + C     T*Y*X + S*Z   T*Z*X - S*Y
+  T*X*Y - S*Z   T*Y*Y + C     T*Z*Y + S*X
+  T*X*Z + S*Y   T*Y*Z - S*X   T*Z*Z + C
+
+  The axis can be computed by subtracting one vertex at the bottom of the
+pole from one vertex at the top of the pole. This subtraction generates a
+vector pointing upward. Next, the vector needs to be normalized. This means
+that the vector length must be made equal to 1. This is how:
+
+  L = sqrt (X*X + Y*Y + Z*Z)
+  X = X / L
+  Y = Y / L
+  Z = Z / L
+
+  Now you have a valid axis for the rotation. Get the sine and cosine for the
+angle of rotation and apply the equations to get the t-matrix. This is really
+pretty simple compared to rotation around XYZ. However, each type of rotation
+has its use. Also, it is extremely difficult to convert between an XYZ
+rotation and an axis rotation.
+
+End of document

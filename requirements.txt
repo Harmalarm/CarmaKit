@@ -1,0 +1,20 @@
+# CarmaKit Dependencies
+# =====================
+#
+# To install dependencies, use:
+#   pip install -r requirements.txt --extra-index-url https://download.blender.org/pypi/
+#
+
+# Blender Python API for headless testing
+--extra-index-url https://download.blender.org/pypi/
+bpy==5.0.1
+
+# Testing
+pytest>=7.0
+pytest-cov>=4.0
+
+# Development tools
+black>=23.0
+isort>=5.12
+mypy>=1.0
+ruff>=0.1.0

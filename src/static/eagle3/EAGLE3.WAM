@@ -1,0 +1,488 @@
+VERSION 4
+
+// Sub member: Master-crush data
+1                           // Number of 'X mins' entries.
+0.104000                    // X mins
+1                           // Number of 'X maxs' entries.
+-0.107000                   // X maxs
+1                           // Number of 'Y mins' entries.
+0.138000                    // Y mins
+1                           // Number of 'Y maxs' entries.
+0.062000                    // Y maxs
+1                           // Number of 'Z mins' entries.
+0.215000                    // Z mins
+1                           // Number of 'Z maxs' entries.
+-0.227000                   // Z maxs
+1.000000                    // Bendability factor
+-0.064000                   // Bend point Z min
+0.152000                    // Bend point Z max
+1.000000                    // Snappability factor
+0                           // Y split position
+0.056000,0.163000,0.053000  // Driver position
+18                          // Number of 'Crush data' entries.
+// entry 0 (woof)
+EAGLENEW.ACT
+normal
+boring
+1				// number of smashable parts
+
+EAGLR.MAT	// name of material
+SCRN	// pixelmap to use when intact
+2				// Number of levels
+0.0005			// trigger threshold (default if zero)
+1				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4530			// sound ID
+
+	0				// Shrapnel count
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN2	// pixelmap to use when smashed level 1
+0.002			// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4500			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0				// flags
+	SCRN4		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN3			// pixelmap to use when smashed level 2
+
+// Crush data entry #1
+EIIINGIN.DAT                // Actor
+normal                      // Softness
+boring                      // Crush type
+0                           // Number of 'Smash data' entries.
+// Crush data entry #2
+EIIIBOOT.DAT                // Actor
+normal                      // Softness
+//flap                        // Crush type
+//32                          // Hinge point 0
+//17                          // Hinge point 1
+//24                          // Hinge point 2
+//0                           // Kev-o-flap?
+//normal                      // Ease of flap
+boring
+0                           // Number of 'Smash data' entries.
+// Crush data entry #3
+EIIIFBMP.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+stubborn                    // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #4
+EIIIFLWG.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+normal                      // Type
+box							// shape
+1				// number of smashable parts
+// smashable part #1
+EALITL			// name of material
+eheadlig		// pixelmap to use when intact
+1				// Number of levels
+0.002				// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4520			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0x01			// flags
+	RLFRAG.MAT		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+EHEADBRK	// pixelmap to use when smashed
+
+
+// Crush data entry #5
+EIIIFRWG.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+normal                  	// Type
+box							// shape
+1				// number of smashable parts
+// smashable part #2
+EALITR			// name of material
+eheadlig		// pixelmap to use when intact
+1				// Number of levels
+0.002				// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4520			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0x01			// flags
+	RLFRAG.MAT		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+EHEADBRK	// pixelmap to use when smashed
+
+// Crush data entry #6
+EIIIHOOD.DAT                // Actor
+normal                      // Softness
+flap                        // Crush type
+4                          // Hinge point 0
+1                          // Hinge point 1
+6                          // Hinge point 2
+0                           // Kev-o-flap?
+hard                      // Ease of flap
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #7
+EIIILDOR.DAT                // Actor
+normal                      // Softness
+flap                        // Crush type
+14                          // Hinge point 0
+11                          // Hinge point 1
+13                          // Hinge point 2
+1                           // Kev-o-flap?
+normal                      // Ease of flap
+box							// shape
+1                           // Number of 'Smash data' entries.
+EADORGLL.MAT	// name of material
+SCRN	// pixelmap to use when intact
+2				// Number of levels
+0.0005			// trigger threshold (default if zero)
+1				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4530			// sound ID
+
+	0				// Shrapnel count
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN2	// pixelmap to use when smashed level 1
+0.002			// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4500			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0				// flags
+	SCRN4		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN3			// pixelmap to use when smashed level 2
+
+// Crush data entry #8
+EIIILFIN.DAT                // Actor
+normal                      // Softness
+boring                      // Crush type
+0                           // Number of 'Smash data' entries.
+// Crush data entry #9
+EIIIRBMP.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+stubborn                      // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #10
+EIIIRDOR.DAT                // Actor
+normal                      // Softness
+flap                        // Crush type
+13                          // Hinge point 0
+10                          // Hinge point 1
+18                          // Hinge point 2
+1                           // Kev-o-flap?
+normal                      // Ease of flap
+box							// shape
+1                           // Number of 'Smash data' entries.
+EADORGLR.MAT	// name of material
+SCRN	// pixelmap to use when intact
+2				// Number of levels
+0.0005			// trigger threshold (default if zero)
+1				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4530			// sound ID
+
+	0				// Shrapnel count
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN2	// pixelmap to use when smashed level 1
+0.002			// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4500			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0				// flags
+	SCRN4		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+SCRN3			// pixelmap to use when smashed level 2
+
+// Crush data entry #11
+EIIIRFIN.DAT                // Actor
+normal                      // Softness
+boring                      // Crush type
+0                           // Number of 'Smash data' entries.
+// Crush data entry #12
+EIIIRLWG.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+normal                      // Type
+box							// shape
+1                           // Number of 'Smash data' entries.
+// smashable part #1
+EARLITL			// name of material
+ebacklig		// pixelmap to use when intact
+1				// Number of levels
+0.002				// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4520			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0x01			// flags
+	RLFRAG.MAT		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+EBACKBRK	// pixelmap to use when smashed
+
+// Crush data entry #13
+EIIIRRWG.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+normal                      // Type
+box							// shape
+1                           // Number of 'Smash data' entries.
+// smashable part #2
+EARLITR			// name of material
+ebacklig		// pixelmap to use when intact
+1				// Number of levels
+0.002				// trigger threshold (default if zero)
+0				// flags
+
+	// Connotations:
+	
+	1				// number of possible sounds
+	4520			// sound ID
+
+	1				// Shrapnel count
+	shards			// Shrapnel type
+	0,0				// Min,max speed towards car
+	1.0				// Impactee velocity factor
+	10.0			// Random velocity (max)
+	2.0				// Random up velocity (max)
+	0				// Random normal velocity (max)
+	100.0			// Random spin rate (max)
+	0.75,1.25		// Min time, Max time
+	0.005			// Min cut length
+	0x01			// flags
+	RLFRAG.MAT		// name of shrapnel material
+	
+	0										// Explosion size
+	none									// Slick material
+	0				// Number of non-cars activated
+	0				// Radius of side-effect smashes
+	0				// Extensions flags
+	0				// Room turn on code
+	none			// Award code
+	0				// No run-time variable changes
+
+1				// Number of pixelmaps
+EBACKBRK	// pixelmap to use when smashed
+
+// Crush data entry #14
+EIIIFIN.DAT                 // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+fully_detach                // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #15
+EIIISPK1.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+fully_detach                // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #16
+EIIISPK2.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+fully_detach                // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+// Crush data entry #17
+EIIISPK3.DAT                // Actor
+normal                      // Softness
+detach                      // Crush type
+normal                      // Ease of detachment
+fully_detach                // Type
+box							// shape
+0                           // Number of 'Smash data' entries.
+
