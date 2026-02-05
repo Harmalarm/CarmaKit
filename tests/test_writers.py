@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from carmakit_addon.data_structures import (
+from carmakit_addon.utils.data_structures import (
     ActFile,
     ActorNode,
     BoundingBox,
@@ -24,17 +24,13 @@ from carmakit_addon.data_structures import (
     Vector2,
     Vector3,
 )
-from carmakit_addon.parsers import (
-    parse_act_file,
-    parse_dat_file,
-    parse_mat_file,
-)
-from carmakit_addon.writers import (
-    write_act_file,
-    write_dat_file,
-    write_mat_file,
-    write_sdf_file,
-)
+from carmakit_addon.parsers.act_parser import parse_act_file
+from carmakit_addon.parsers.dat_parser import parse_dat_file
+from carmakit_addon.parsers.mat_parser import parse_mat_file
+from carmakit_addon.writers.act_writer import write_act_file
+from carmakit_addon.writers.dat_writer import write_dat_file
+from carmakit_addon.writers.mat_writer import write_mat_file
+from carmakit_addon.writers.sdf_writer import write_sdf_file
 
 
 class TestDatWriter:

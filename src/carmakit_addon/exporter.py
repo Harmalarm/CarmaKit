@@ -15,25 +15,30 @@ import bpy
 import bmesh
 from mathutils import Matrix, Vector
 
-from .data_structures import (
+from .classes.act_classes import (
     ActFile,
     ActorNode,
     BoundingBox,
+    TransformMatrix,
+)
+from .classes.dat_classes import (
     DatFile,
     DatModel,
-    Face,
+    Face, 
+)
+from .classes.mat_classes import (
     Material as CarMaterial,
     MatFile,
-    TransformMatrix,
+)
+from .classes.shared_classes import (
     Vector2,
     Vector3,
 )
-from .writers import (
-    write_act_file,
-    write_dat_file,
-    write_mat_file,
-    write_sdf_file,
-)
+
+from .writers.act_writer import write_act_file
+from .writers.dat_writer import write_dat_file
+from .writers.mat_writer import write_mat_file
+from .writers.sdf_writer import write_sdf_file
 from .constants import DEFAULT_FACE_FLAGS, MAT_FLAG_DEFAULT
 
 
@@ -65,6 +70,7 @@ class ExportOptions:
     triangulate: bool = True
     generate_sdf: bool = True
     export_format: str = 'ALL'
+    export_kind: str = 'CAR'
 
 
 @dataclass
@@ -108,42 +114,46 @@ def export_carmageddon_model(
 
         # Collect objects to export.
         if options.selected_only:
-            objects = [
-                obj for obj in context.selected_objects
-                if obj.type == 'MESH'
-            ]
+            scene_objects = list(context.selected_objects)
         else:
-            objects = [
-                obj for obj in context.scene.objects
-                if obj.type == 'MESH'
-            ]
+            scene_objects = list(context.scene.objects)
 
-        if not objects:
+        act_objects = [
+            obj for obj in scene_objects
+            if obj.type in {'MESH', 'EMPTY'}
+        ]
+        mesh_objects = [obj for obj in act_objects if obj.type == 'MESH']
+
+        if not mesh_objects:
             result.error_message = "No mesh objects to export"
             result.success = False
             return result
 
         # Collect all materials.
         all_materials: Dict[str, bpy.types.Material] = {}
-        for obj in objects:
+        for obj in mesh_objects:
             for slot in obj.material_slots:
                 if slot.material:
                     all_materials[slot.material.name] = slot.material
 
         # Create DAT file.
-        dat_file = _create_dat_file(context, objects, options)
+        dat_file = _create_dat_file(context, mesh_objects, options)
 
         # Create MAT file.
         mat_file = _create_mat_file(all_materials, base_path)
 
         # Create ACT file.
-        act_file = _create_act_file(objects, base_name, options)
+        act_file = _create_act_file(act_objects, base_name, options)
 
         # Write files based on export format.
         if options.export_format in ['ALL', 'ACT_DAT']:
             # Write ACT file.
             act_path = os.path.join(base_path, base_name + '.act')
-            write_act_file(act_path, act_file)
+            write_act_file(
+                act_path,
+                act_file,
+                legacy_hierarchy=(options.export_kind == 'CAR')
+            )
             result.files_written += 1
 
         if options.export_format in ['ALL', 'ACT_DAT', 'DAT_ONLY']:
@@ -394,60 +404,87 @@ def _create_act_file(
     """
     act_file = ActFile()
 
-    # Create root node.
-    root = ActorNode()
-    root.name = base_name
+    include_bounding_boxes = options.export_kind == 'TRACK'
 
-    # Calculate bounding box for all objects.
-    min_co = Vector((float('inf'), float('inf'), float('inf')))
-    max_co = Vector((float('-inf'), float('-inf'), float('-inf')))
-
+    # Build actor nodes and preserve Blender parenting where possible.
+    node_map: Dict[bpy.types.Object, ActorNode] = {}
     for obj in objects:
-        for corner in obj.bound_box:
-            world_co = obj.matrix_world @ Vector(corner)
-            min_co.x = min(min_co.x, world_co.x)
-            min_co.y = min(min_co.y, world_co.y)
-            min_co.z = min(min_co.z, world_co.z)
-            max_co.x = max(max_co.x, world_co.x)
-            max_co.y = max(max_co.y, world_co.y)
-            max_co.z = max(max_co.z, world_co.z)
+        node_map[obj] = _create_actor_node_from_object(
+            obj,
+            options,
+            include_bounding_box=include_bounding_boxes
+        )
 
-    scale = options.scale
-    # Convert bounding box from Blender Z-up to Carmageddon Y-up.
-    root.bounding_box = BoundingBox(
-        Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
-        Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
-    )
+    root_candidates: List[ActorNode] = []
+    for obj, node in node_map.items():
+        if obj.parent and obj.parent in node_map:
+            node_map[obj.parent].children.append(node)
+        else:
+            root_candidates.append(node)
 
-    # Create child nodes for each object.
-    for obj in objects:
-        child = _create_actor_node_from_object(obj, base_name, options)
-        root.children.append(child)
+    if not root_candidates:
+        return act_file
 
-    act_file.root = root
+    if options.export_kind == 'TRACK':
+        # Track exports use a synthetic root container.
+        root = ActorNode()
+        root.name = base_name
+
+        if include_bounding_boxes:
+            min_co = Vector((float('inf'), float('inf'), float('inf')))
+            max_co = Vector((float('-inf'), float('-inf'), float('-inf')))
+
+            for obj in objects:
+                for corner in obj.bound_box:
+                    world_co = obj.matrix_world @ Vector(corner)
+                    min_co.x = min(min_co.x, world_co.x)
+                    min_co.y = min(min_co.y, world_co.y)
+                    min_co.z = min(min_co.z, world_co.z)
+                    max_co.x = max(max_co.x, world_co.x)
+                    max_co.y = max(max_co.y, world_co.y)
+                    max_co.z = max(max_co.z, world_co.z)
+
+            scale = options.scale
+            # Convert bounding box from Blender Z-up to Carmageddon Y-up.
+            root.bounding_box = BoundingBox(
+                Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
+                Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
+            )
+
+        root.children.extend(sorted(root_candidates, key=lambda n: n.name))
+        act_file.root = root
+    else:
+        # Car exports use a real actor as root.
+        root_candidates = sorted(root_candidates, key=lambda n: n.name)
+        root = root_candidates[0]
+        for extra in root_candidates[1:]:
+            root.children.append(extra)
+        act_file.root = root
+
     return act_file
 
 
 def _create_actor_node_from_object(
     obj: bpy.types.Object,
-    dat_name: str,
-    options: ExportOptions
+    options: ExportOptions,
+    include_bounding_box: bool = False
 ) -> ActorNode:
     """
     Create an ActorNode from a Blender object.
 
     :param obj: The Blender object.
     :type obj: bpy.types.Object
-    :param dat_name: Name of the DAT file (for model reference).
-    :type dat_name: str
     :param options: Export options.
     :type options: ExportOptions
+    :param include_bounding_box: Whether to include bounding box data.
+    :type include_bounding_box: bool
     :return: The created ActorNode.
     :rtype: ActorNode
     """
     node = ActorNode()
     node.name = obj.name
-    node.model_name = f"{dat_name}.dat"
+    if obj.type == 'MESH':
+        node.model_name = _format_model_name(obj.name)
 
     # Extract transform.
     matrix = obj.matrix_world
@@ -463,23 +500,36 @@ def _create_actor_node_from_object(
         matrix[0][3] * scale, matrix[2][3] * scale, -matrix[1][3] * scale,
     ))
 
-    # Calculate bounding box.
-    min_co = Vector((float('inf'), float('inf'), float('inf')))
-    max_co = Vector((float('-inf'), float('-inf'), float('-inf')))
+    if include_bounding_box and obj.type == 'MESH':
+        # Calculate bounding box.
+        min_co = Vector((float('inf'), float('inf'), float('inf')))
+        max_co = Vector((float('-inf'), float('-inf'), float('-inf')))
 
-    for corner in obj.bound_box:
-        world_co = obj.matrix_world @ Vector(corner)
-        min_co.x = min(min_co.x, world_co.x)
-        min_co.y = min(min_co.y, world_co.y)
-        min_co.z = min(min_co.z, world_co.z)
-        max_co.x = max(max_co.x, world_co.x)
-        max_co.y = max(max_co.y, world_co.y)
-        max_co.z = max(max_co.z, world_co.z)
+        for corner in obj.bound_box:
+            world_co = obj.matrix_world @ Vector(corner)
+            min_co.x = min(min_co.x, world_co.x)
+            min_co.y = min(min_co.y, world_co.y)
+            min_co.z = min(min_co.z, world_co.z)
+            max_co.x = max(max_co.x, world_co.x)
+            max_co.y = max(max_co.y, world_co.y)
+            max_co.z = max(max_co.z, world_co.z)
 
-    # Convert bounding box from Blender Z-up to Carmageddon Y-up.
-    node.bounding_box = BoundingBox(
-        Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
-        Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
-    )
+        # Convert bounding box from Blender Z-up to Carmageddon Y-up.
+        node.bounding_box = BoundingBox(
+            Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
+            Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
+        )
 
     return node
+
+
+def _format_model_name(object_name: str) -> str:
+    """
+    Format a model name for ACT references.
+
+    :param object_name: The Blender object name.
+    :type object_name: str
+    :return: Model name as-is (verbatim object name).
+    :rtype: str
+    """
+    return object_name

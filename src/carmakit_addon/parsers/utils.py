@@ -1,0 +1,84 @@
+"""
+Common parser utilities for Carmageddon file parsers.
+
+This module contains shared utilities used by all file parsers.
+"""
+import os
+from typing import BinaryIO, Tuple, Optional
+
+from ..utils.binary_reader import (
+    read_record_header,
+    read_uint32,
+)
+from ..constants import FILE_HEADER_TYPE
+
+
+class ParseError(Exception):
+    """Exception raised when parsing fails."""
+    pass
+
+
+def read_file_header(f: BinaryIO) -> Tuple[int, int]:
+    """
+    Read and validate a file header.
+
+    :param f: Binary file handle.
+    :type f: BinaryIO
+    :return: Tuple of (file_type, version).
+    :rtype: Tuple[int, int]
+    :raises ParseError: If header is invalid.
+    """
+    record_type, length = read_record_header(f)
+    if record_type != FILE_HEADER_TYPE:
+        raise ParseError(
+            f"Invalid file header type: {hex(record_type)}"
+        )
+    if length != 8:
+        raise ParseError(f"Invalid header length: {length}")
+
+    file_type = read_uint32(f)
+    version = read_uint32(f)
+
+    return (file_type, version)
+
+def find_related_files(
+    filepath: str
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    """
+    Find related ACT, DAT, and MAT files for a given file.
+
+    Given any of these file types, attempts to locate the other
+    related files in the same directory.
+
+    :param filepath: Path to any ACT, DAT, or MAT file.
+    :type filepath: str
+    :return: Tuple of (act_path, dat_path, mat_path).
+    :rtype: Tuple[Optional[str], Optional[str], Optional[str]]
+    """
+    directory = os.path.dirname(filepath)
+    base_name = os.path.splitext(os.path.basename(filepath))[0]
+
+    act_path = None
+    dat_path = None
+    mat_path = None
+
+    # Check for each file type.
+    for ext in ['.act', '.ACT']:
+        candidate = os.path.join(directory, base_name + ext)
+        if os.path.exists(candidate):
+            act_path = candidate
+            break
+
+    for ext in ['.dat', '.DAT']:
+        candidate = os.path.join(directory, base_name + ext)
+        if os.path.exists(candidate):
+            dat_path = candidate
+            break
+
+    for ext in ['.mat', '.MAT']:
+        candidate = os.path.join(directory, base_name + ext)
+        if os.path.exists(candidate):
+            mat_path = candidate
+            break
+
+    return (act_path, dat_path, mat_path)

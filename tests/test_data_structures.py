@@ -6,7 +6,7 @@ Tests for the data structures module.
 
 import pytest
 
-from carmakit_addon.data_structures import (
+from carmakit_addon.utils.data_structures import (
     ActFile,
     ActorNode,
     BoundingBox,

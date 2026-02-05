@@ -193,6 +193,16 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         default='ALL',
     )  # type: ignore
 
+    export_kind: EnumProperty(
+        name="Export Type",
+        description="Choose whether to export a car or a track",
+        items=[
+            ('CAR', "Car", "Export using car-style ACT layout"),
+            ('TRACK', "Track", "Export using track-style ACT layout"),
+        ],
+        default='CAR',
+    )  # type: ignore
+
     def execute(self, context: Context) -> Set[str]:
         """
         Execute the export operation.
@@ -211,6 +221,7 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
             triangulate=self.triangulate,
             generate_sdf=self.generate_sdf,
             export_format=self.export_format,
+            export_kind=self.export_kind,
         )
 
         try:
@@ -245,6 +256,7 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         box.label(text="Output", icon='FILE')
         box.prop(self, "export_format")
         box.prop(self, "generate_sdf")
+        box.prop(self, "export_kind")
 
         box = layout.box()
         box.label(text="Transform", icon='ORIENTATION_GLOBAL')

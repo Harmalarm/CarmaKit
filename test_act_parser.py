@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, 'src')
 
-from carmakit_addon.parsers import parse_act_file
+from carmakit_addon.parsers.act_parser import parse_act_file
 
 try:
     act = parse_act_file('src/static/eagle3/EAGLE3.ACT')
