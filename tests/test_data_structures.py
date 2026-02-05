@@ -6,20 +6,25 @@ Tests for the data structures module.
 
 import pytest
 
-from carmakit_addon.utils.data_structures import (
-    ActFile,
-    ActorNode,
-    BoundingBox,
-    DatFile,
-    DatModel,
-    Face,
-    Material,
-    MatFile,
-    TransformMatrix,
+from carmakit_addon.classes.shared_classes import (
     Vector2,
     Vector3,
 )
-
+from carmakit_addon.classes.act_classes  import (
+    ActFile,
+    ActorNode,
+    BoundingBox,
+    TransformMatrix,
+)
+from carmakit_addon.classes.mat_classes  import (
+    Material,
+    MatFile,
+)
+from carmakit_addon.classes.dat_classes  import ( 
+    DatFile,
+    DatModel,
+    Face,
+)
 
 class TestVector3:
     """Tests for Vector3 class."""

@@ -11,18 +11,24 @@ from pathlib import Path
 
 import pytest
 
-from carmakit_addon.utils.data_structures import (
+from carmakit_addon.classes.shared_classes import (
+    Vector2,
+    Vector3,
+)
+from carmakit_addon.classes.act_classes  import (
     ActFile,
     ActorNode,
     BoundingBox,
+    TransformMatrix,
+)
+from carmakit_addon.classes.mat_classes  import (
+    Material,
+    MatFile,
+)
+from carmakit_addon.classes.dat_classes  import ( 
     DatFile,
     DatModel,
     Face,
-    Material,
-    MatFile,
-    TransformMatrix,
-    Vector2,
-    Vector3,
 )
 from carmakit_addon.parsers.act_parser import parse_act_file
 from carmakit_addon.parsers.dat_parser import parse_dat_file
