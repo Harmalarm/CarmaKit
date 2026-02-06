@@ -51,6 +51,11 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Static Files
+eagle3_export/
+ihorse/
+eagle3/
+
 # Translations
 *.mo
 *.pot
