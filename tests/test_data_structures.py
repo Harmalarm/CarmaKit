@@ -1,7 +1,7 @@
 """
 Tests for the data structures module.
 
-:author: CarmaKit Team
+
 """
 
 import pytest

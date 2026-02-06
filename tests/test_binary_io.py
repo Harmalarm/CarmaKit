@@ -1,7 +1,7 @@
 """
 Tests for the binary I/O utility functions.
 
-:author: CarmaKit Team
+
 """
 
 import io

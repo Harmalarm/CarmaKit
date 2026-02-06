@@ -4,7 +4,7 @@ Binary read utilities for CarmaKit.
 This module provides low-level functions for reading binary data in the
 big-endian format used by Carmageddon files.
 
-:author: CarmaKit Team
+
 """
 
 import struct

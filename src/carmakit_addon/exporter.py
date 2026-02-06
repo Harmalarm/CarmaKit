@@ -4,7 +4,7 @@ Carmageddon model exporter for Blender.
 This module handles exporting Blender meshes to Carmageddon
 DAT, ACT, and MAT file formats.
 
-:author: CarmaKit Team
+
 """
 
 import os

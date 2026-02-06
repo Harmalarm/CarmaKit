@@ -4,7 +4,7 @@ Blender operators for CarmaKit.
 This module contains the import and export operators that handle
 loading and saving Carmageddon model files.
 
-:author: CarmaKit Team
+
 """
 
 import os

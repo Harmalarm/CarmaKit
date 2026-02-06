@@ -1,7 +1,7 @@
 """
 Tests for the constants module.
 
-:author: CarmaKit Team
+
 """
 
 import pytest

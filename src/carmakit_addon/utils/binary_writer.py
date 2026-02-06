@@ -4,7 +4,7 @@ Binary write utilities for CarmaKit.
 This module provides low-level functions for writing binary data in the
 big-endian format used by Carmageddon files.
 
-:author: CarmaKit Team
+
 """
 
 import struct

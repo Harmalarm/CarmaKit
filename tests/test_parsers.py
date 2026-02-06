@@ -3,7 +3,7 @@ Tests for the file parsers.
 
 These tests use the Eagle3 sample model files to validate parsing.
 
-:author: CarmaKit Team
+
 """
 
 import os

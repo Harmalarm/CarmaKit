@@ -4,7 +4,7 @@ General utility helpers for CarmaKit.
 This module contains utility functions that do not belong to a specific
 import/export format, such as scene cleanup.
 
-:author: CarmaKit Team
+
 """
 
 from typing import Iterable

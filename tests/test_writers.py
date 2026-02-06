@@ -3,7 +3,7 @@ Tests for the file writers.
 
 These tests verify that data structures can be written and re-read correctly.
 
-:author: CarmaKit Team
+
 """
 
 import os

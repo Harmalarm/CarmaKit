@@ -4,7 +4,7 @@ Test configuration and fixtures for CarmaKit.
 This module provides pytest fixtures and configuration for testing
 the CarmaKit addon's file parsers and data structures.
 
-:author: CarmaKit Team
+
 """
 
 import os

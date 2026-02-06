@@ -4,7 +4,7 @@ Addon preferences for CarmaKit.
 This module defines user-configurable preferences that appear in Blender's
 addon preferences panel. These settings persist across Blender sessions.
 
-:author: CarmaKit Team
+
 """
 
 from typing import Set

@@ -5,7 +5,7 @@ This addon enables importing and exporting of Carmageddon 1/2 model files
 directly in Blender, supporting DAT (mesh), ACT (actor hierarchy),
 MAT (material), and related formats.
 
-:author: CarmaKit Team
+
 :version: 0.1.0
 :blender_version: (5, 0, 0)
 """

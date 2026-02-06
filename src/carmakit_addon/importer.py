@@ -4,7 +4,7 @@ Carmageddon model importer for Blender.
 This module handles importing Carmageddon DAT, ACT, and MAT files
 into Blender as meshes, empties, and materials.
 
-:author: CarmaKit Team
+
 """
 
 import os

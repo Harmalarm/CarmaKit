@@ -6,7 +6,7 @@ used throughout the addon for parsing and writing Carmageddon file formats.
 
 All multi-byte values in Carmageddon files are stored in big-endian format.
 
-:author: CarmaKit Team
+
 """
 
 from typing import Final

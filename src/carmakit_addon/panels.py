@@ -4,7 +4,7 @@ UI Panels for CarmaKit.
 This module contains the Blender UI panels that provide
 the main interface for the CarmaKit addon.
 
-:author: CarmaKit Team
+
 """
 
 from typing import Set
