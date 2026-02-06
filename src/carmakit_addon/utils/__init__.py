@@ -9,4 +9,5 @@ __all__ = [
     'binary_reader',
     'binary_writer',
     'data_structures',
+    'general_utils',
 ]

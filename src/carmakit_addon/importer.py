@@ -31,6 +31,7 @@ from .parsers.act_parser import parse_act_file
 from .parsers.dat_parser import parse_dat_file
 from .parsers.mat_parser import parse_mat_file
 from .parsers.utils import ParseError, find_related_files
+from .utils.general_utils import cleanup_scene
 
 
 def _log_verbose(message: str) -> None:
@@ -98,6 +99,8 @@ class ImportOptions:
     :type import_materials: bool
     :param import_textures: Whether to load textures.
     :type import_textures: bool
+    :param cleanup_scene: Whether to clean the scene before import.
+    :type cleanup_scene: bool
     """
 
     filepath: str
@@ -105,6 +108,7 @@ class ImportOptions:
     apply_transform: bool = True
     import_materials: bool = True
     import_textures: bool = True
+    cleanup_scene: bool = False
 
 
 @dataclass
@@ -144,10 +148,17 @@ def import_carmageddon_model(
     """
     result = ImportResult()
     _log_verbose(f"Starting import of: {options.filepath}")
-    _log_verbose(f"Options: scale={options.scale}, apply_transform={options.apply_transform}, "
-                 f"import_materials={options.import_materials}, import_textures={options.import_textures}")
+    _log_verbose(
+        f"Options: scale={options.scale}, apply_transform={options.apply_transform}, "
+        f"import_materials={options.import_materials}, import_textures={options.import_textures}, "
+        f"cleanup_scene={options.cleanup_scene}"
+    )
 
     try:
+        if options.cleanup_scene:
+            _log_verbose("Cleaning up scene before import...")
+            cleanup_scene(context)
+
         # Find related files.
         _log_verbose("Searching for related files...")
         act_path, dat_path, mat_path = find_related_files(options.filepath)

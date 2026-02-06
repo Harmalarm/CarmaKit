@@ -237,7 +237,8 @@ def _create_model_from_object(
         return None
 
     model = DatModel()
-    model.name = obj.name
+    # Use mesh data name for DAT model name to match Blender mesh naming.
+    model.name = obj.data.name
 
     # Create bmesh for processing.
     bm = bmesh.new()
@@ -249,6 +250,9 @@ def _create_model_from_object(
 
     bm.verts.ensure_lookup_table()
     bm.faces.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+
+    smoothing_groups = _compute_smoothing_groups(bm)
 
     # Export vertices with axis conversion.
     # Blender uses Z-up, Carmageddon uses Y-up.
@@ -314,11 +318,18 @@ def _create_model_from_object(
             if slot.material and slot.material.name in mat_name_to_index:
                 mat_index = mat_name_to_index[slot.material.name]
 
+        smoothing_group = smoothing_groups.get(face.index, 0)
+        flags = bytes([
+            (smoothing_group >> 8) & 0xFF,
+            smoothing_group & 0xFF,
+            DEFAULT_FACE_FLAGS[2],
+        ])
+
         model.faces.append(Face(
             v1=v1,
             v2=v2,
             v3=v3,
-            flags=DEFAULT_FACE_FLAGS,
+            flags=flags,
             material_index=mat_index
         ))
 
@@ -329,6 +340,51 @@ def _create_model_from_object(
         obj_eval.to_mesh_clear()
 
     return model
+
+
+def _compute_smoothing_groups(bm: bmesh.types.BMesh) -> Dict[int, int]:
+    """
+    Compute smoothing group bitmasks from smooth edges.
+
+    Faces connected by a soft edge will share at least one smoothing
+    group bit. Faces can accumulate multiple bits if they share soft
+    edges with different neighboring groups.
+
+    :param bm: The bmesh to analyze.
+    :type bm: bmesh.types.BMesh
+    :return: Mapping of face index to smoothing group bitmask.
+    :rtype: Dict[int, int]
+    """
+    face_masks: Dict[int, int] = {face.index: 0 for face in bm.faces}
+    next_bit = 0
+
+    def _allocate_bit() -> int:
+        nonlocal next_bit
+        if next_bit < 16:
+            bit = 1 << next_bit
+            next_bit += 1
+            return bit
+        # Fall back to bit 0 when exceeding 16 groups.
+        return 1
+
+    for edge in bm.edges:
+        if len(edge.link_faces) != 2:
+            continue
+        face_a, face_b = edge.link_faces
+        if not edge.smooth or not face_a.smooth or not face_b.smooth:
+            continue
+
+        mask_a = face_masks[face_a.index]
+        mask_b = face_masks[face_b.index]
+
+        if mask_a & mask_b:
+            continue
+
+        new_bit = _allocate_bit()
+        face_masks[face_a.index] = mask_a | new_bit
+        face_masks[face_b.index] = mask_b | new_bit
+
+    return face_masks
 
 
 def _create_mat_file(
@@ -429,6 +485,7 @@ def _create_act_file(
         # Track exports use a synthetic root container.
         root = ActorNode()
         root.name = base_name
+        root.attributes = 0x0104
 
         if include_bounding_boxes:
             min_co = Vector((float('inf'), float('inf'), float('inf')))
@@ -483,8 +540,9 @@ def _create_actor_node_from_object(
     """
     node = ActorNode()
     node.name = obj.name
-    if obj.type == 'MESH':
-        node.model_name = _format_model_name(obj.name)
+    node.attributes = 0x0104
+    if obj.type == 'MESH' and obj.data:
+        node.model_name = _format_model_name(obj.data.name)
 
     # Extract transform.
     matrix = obj.matrix_world

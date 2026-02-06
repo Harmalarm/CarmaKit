@@ -68,6 +68,12 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         default=True,
     )  # type: ignore
 
+    cleanup_scene: BoolProperty(
+        name="Cleanup Scene",
+        description="Remove existing objects and unused data before import",
+        default=False,
+    )  # type: ignore
+
     def execute(self, context: Context) -> Set[str]:
         """
         Execute the import operation.
@@ -84,6 +90,7 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
             apply_transform=self.apply_transform,
             import_materials=self.import_materials,
             import_textures=self.import_textures,
+            cleanup_scene=self.cleanup_scene,
         )
 
         try:
@@ -125,6 +132,10 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         sub = box.row()
         sub.enabled = self.import_materials
         sub.prop(self, "import_textures")
+
+        box = layout.box()
+        box.label(text="Cleanup", icon='TRASH')
+        box.prop(self, "cleanup_scene")
 
 
 class CARMAKIT_OT_export_model(Operator, ExportHelper):
