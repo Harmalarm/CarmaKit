@@ -36,6 +36,7 @@ _classes: List[type] = [
     preferences.CarmaKitPreferences,
     operators.CARMAKIT_OT_import_model,
     operators.CARMAKIT_OT_export_model,
+    panels.CARMAKIT_OT_open_preferences,
     panels.CARMAKIT_PT_main_panel,
 ]
 

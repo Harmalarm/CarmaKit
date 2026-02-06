@@ -8,7 +8,7 @@ import io
 import struct
 import pytest
 
-from carmakit_addon.binary_io import (
+from carmakit_addon.utils.binary_reader import (
     read_float32,
     read_float32_array,
     read_int16,
@@ -18,6 +18,8 @@ from carmakit_addon.binary_io import (
     read_uint16,
     read_uint32,
     read_uint8,
+)
+from carmakit_addon.utils.binary_writer import (
     write_float32,
     write_float32_array,
     write_int16,

@@ -44,6 +44,16 @@ class CarmaKitPreferences(AddonPreferences):
         default='C2',
     )  # type: ignore
 
+    game_folder: StringProperty(
+        name="Game Folder",
+        description=(
+            "Path to the Carmageddon game installation folder. "
+            "Used to find missing textures in Data/Reg/PIXELMAP/tiffrgb"
+        ),
+        default="E:\\Games\\VanillaC2",
+        subtype='DIR_PATH',
+    )  # type: ignore
+
     # =========================================================================
     # Import Preferences
     # =========================================================================
@@ -166,6 +176,7 @@ class CarmaKitPreferences(AddonPreferences):
         box = layout.box()
         box.label(text="General Settings", icon='PREFERENCES')
         box.prop(self, "game_version")
+        box.prop(self, "game_folder")
         box.prop(self, "debug_logging")
         box.prop(self, "verbose_import_logging")
 

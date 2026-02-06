@@ -11,13 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from carmakit_addon.parsers import (
-    ParseError,
-    find_related_files,
-    parse_act_file,
-    parse_dat_file,
-    parse_mat_file,
-)
+from carmakit_addon.parsers.act_parser import parse_act_file
+from carmakit_addon.parsers.dat_parser import parse_dat_file
+from carmakit_addon.parsers.mat_parser import parse_mat_file
+from carmakit_addon.parsers.utils import ParseError, find_related_files
 
 
 class TestDatParser:

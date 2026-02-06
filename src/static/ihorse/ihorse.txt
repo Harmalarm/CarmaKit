@@ -1,0 +1,542 @@
+VERSION 2
+ihorse.txt
+0.3				// softness_factor
+
+START OF DRIVABLE STUFF
+0,0,0
+0,0
+0,0,0,0
+none,none,none,none
+END OF DRIVABLE STUFF
+
+5312,5312,5312			// Engine noise (normal, enclosed space, underwater)
+
+stealworthy			// Can be stolen
+
+// Damage info for top impacts
+1					// Number of clauses
+	always
+	2				// Systems count
+		driver,1.5		// Damage
+		engine,1.0		// Damage 
+
+// Damage info for bottom impacts
+5					// Number of clauses
+	always
+	1				// Systems count
+		transmission,0.2	// Damage
+	z<0.25&x<0.25			// Condition
+	3				// Systems count
+		lf_wheel,0.5		// Damage 
+		lf_brake,0.5		// Damage 
+		steering,0.3		// Damage 
+	z<0.25&x>0.75			// Condition
+	3				// Systems count
+		rf_wheel,0.5		// Damage 
+		rf_brake,0.5		// Damage 
+		steering,0.3		// Damage 
+	z>0.75&x<0.25			// Condition
+	2				// Systems count
+		lr_wheel,0.5		// Damage 
+		lr_brake,0.5		// Damage 
+	z>0.75&x>0.75			// Condition
+	2				// Systems count
+		rr_wheel,0.5		// Damage 
+		rr_brake,0.5		// Damage 
+
+// Damage info for left impacts
+3					// Number of clauses
+	z>0.25&z<0.75
+	1				// Systems count
+		driver,1.0		// Damage
+	z<0.25				// Condition
+	3				// Systems count
+		lf_wheel,0.5		// Damage 
+		lf_brake,0.5		// Damage 
+		steering,0.3		// Damage 
+	z>0.75				// Condition
+	2				// Systems count
+		lr_wheel,0.5		// Damage 
+		lr_brake,0.5		// Damage 
+
+// Damage info for right impacts
+3					// Number of clauses
+	z>0.25&z<0.75
+	1				// Systems count
+		driver,1.0		// Damage
+	z<0.25				// Condition
+	3				// Systems count
+		rf_wheel,0.5		// Damage 
+		rf_brake,0.5		// Damage 
+		steering,0.3		// Damage 
+	z>0.75				// Condition
+	2				// Systems count
+		rr_wheel,0.5		// Damage 
+		rr_brake,0.5		// Damage 
+
+// Damage info for front impacts
+3					// Number of clauses
+	always				// Condition
+	1				// Systems count
+		transmission,0.3	// Damage 
+	x<0.25				// Condition
+	3				// Systems count
+		lf_wheel,0.5		// Damage 
+		lf_brake,0.5		// Damage 
+		steering,0.5		// Damage 
+	x>0.75				// Condition
+	3				// Systems count
+		rf_wheel,0.5		// Damage 
+		rf_brake,0.5		// Damage 
+		steering,0.5		// Damage 
+
+// Damage info for rear impacts
+3					// Number of clauses
+	always				// Condition
+	1				// Systems count
+		transmission,0.5	// Damage 
+	x<0.25				// Condition
+	2				// Systems count
+		lr_wheel,0.5		// Damage 
+		lr_brake,0.5		// Damage 
+	x>0.75				// Condition
+	2				// Systems count
+		rr_wheel,0.5		// Damage 
+		rr_brake,0.5		// Damage 
+
+NONE,NONE,NONE	// Grid image (opponent, frank, annie)
+
+1				// Number of extra levels of detail
+8
+
+ihorse.wam			// crush data file (will be incorporated into this file)
+
+NONE			// Name of reflective screen material (or none if non-reflective)
+100				// Percentage transparency of windscreen
+
+6				// Number of steerable wheels
+7				// GroovyFunkRef of 1st steerable wheel
+8				// GroovyFunkRef of 2nd steerable wheel
+13
+14
+15
+16
+
+3,12,18,-1			// Left-front suspension parts GroovyFunkRef
+4,-1,-1,-1			// Right-front suspension parts GroovyFunkRef
+6,17				// Left-rear suspension parts GroovyFunkRef
+5,-1				// Right-rear suspension parts GroovyFunkRef
+
+-1,-1,2,1		// Driven wheels GroovyFunkRefs (for spinning) - MUST BE 4 ITEMS
+10,9,-1,-1		// Non-driven wheels GroovyFunkRefs (for spinning) - MUST BE 4 ITEMS
+
+0.1899				// Driven wheels diameter
+0.1899				// Non-driven wheels diameter
+
+START OF FUNK
+
+ihorsel3.mat	// rear right light
+	constant
+	no effect
+	no lighting
+	frames
+		accurate
+		texturebits
+			VB
+			4
+				ihorsel1
+				ihorsel1
+				ihorsel3
+				ihorsel3
+
+NEXT FUNK
+
+ihorsel4.mat	// rear left light
+	constant
+	no effect
+	no lighting
+	frames
+		accurate
+		texturebits
+			VB
+			4
+				ihorsel1
+				ihorsel1
+				ihorsel3
+				ihorsel3
+
+END OF FUNK
+
+START OF GROOVE
+
+g_susp_front1.act
+	not a lollipop
+	constant
+	no path
+	shear
+		controlled
+		0,12,0
+		0,0,0
+		0,65,0
+
+NEXT GROOVE
+
+g_susp_front2.act
+	not a lollipop
+	constant
+	no path
+	shear
+		controlled
+		0,18,0
+		0,0,0
+		0,50,0
+
+NEXT GROOVE
+
+g_susp_rear.act
+	not a lollipop
+	constant
+	no path
+	shear
+		controlled
+		0,17,0
+		0,0,0
+		0,100,0
+
+NEXT GROOVE
+
+FRPIVOT.ACT
+	not a lollipop
+	constant
+	straight
+		absolute
+		0,0,0
+		4
+		0,1,0
+	rock
+		absolute
+		7
+		0,0,0
+		y
+		0
+
+NEXT GROOVE
+
+FLPIVOT.ACT
+	not a lollipop
+	constant
+	straight
+		absolute
+		0,0,0
+		3
+		0,1,0
+	rock
+		absolute
+		8
+		0,0,0
+		y
+		0
+
+NEXT GROOVE
+
+RRSUSP.ACT
+	not a lollipop
+	constant
+	straight
+		absolute
+		0,0,0
+		5
+		0,1,0
+	nope
+
+NEXT GROOVE
+
+RLSUSP.ACT
+	not a lollipop
+	constant
+	straight
+		absolute
+		0,0,0
+		6
+		0,1,0
+	nope
+
+NEXT GROOVE
+
+RRPIVOT.ACT
+	not a lollipop
+	constant
+	no path
+	rock
+		absolute
+		15
+		0,0,0
+		y
+		0
+
+NEXT GROOVE
+
+RLPIVOT.ACT
+	not a lollipop
+	constant
+	no path
+	rock
+		absolute
+		16
+		0,0,0
+		y
+		0
+
+NEXT GROOVE
+
+RRWHEEL.ACT
+	not a lollipop
+	constant
+	no path
+	spin
+		controlled
+		1
+		0,0,0
+		x
+
+NEXT GROOVE
+
+RLWHEEL.ACT
+	not a lollipop
+	constant
+	no path
+	spin
+		controlled
+		2
+		0,0,0
+		x
+
+NEXT GROOVE
+
+FRWHEEL.ACT
+	not a lollipop
+	constant
+	no path
+	spin
+		controlled
+		9
+		0,0,0
+		x
+
+NEXT GROOVE
+
+FLWHEEL.ACT
+	not a lollipop
+	constant
+	no path
+	spin
+		controlled
+		10
+		0,0,0
+		x
+
+NEXT GROOVE
+
+g_engine.act
+	not a lollipop
+	constant
+	no path
+	rock
+		flash gordon
+		6
+		0,0,0
+		z
+		1
+
+NEXT GROOVE
+
+g_stwheel.act
+	not a lollipop
+	constant
+	no path
+	rock
+		absolute
+		13
+		0,0,0
+		z
+		0
+
+NEXT GROOVE
+
+g_driver_head.act
+	not a lollipop
+	constant
+	no path
+	rock
+		absolute
+		14
+		0,0,0
+		y
+		0
+
+END OF GROOVE
+
+// END OF CRUSH DATA
+
+START OF MECHANICS STUFF version 1
+
+1.4                    // Minimum turning circle.
+1.000000                    // Brake multiplier
+1.000000                    // Braking strength multiplier
+5                           // Number of gears
+250.000000                  // Top gear red line speed
+7.000000                    // Top gear acceleration
+
+// Sub member: Root part
+normal                      // Type
+ihorse.act                  // Identifier
+ihorse.act                  // Actor
+
+// Sub member: Joint data
+none                        // Type
+0.000000,0.169,0 // Centre of mass
+4.0                    // Mass
+0.843,0.695,1.132  // Angular momentum proportions
+50.000000                   // Downforce-to-weight balance speed
+4                           // Number of 'Wheels' entries.
+
+// Wheels entry #1
+0                           // Type
+RLWHEEL.ACT                 // Identifier
+RLWHEEL.ACT                 // Actor
+-0.264,0.186,0.35725  // Position
+0                           // Steerable flags
+1                           // Driven flags
+0.020000                    // Suspension give
+0.300000                    // Damping factor
+1.000000                    // Fractional reduction in friction when slipping
+80.000000,80		        // Friction angles
+2.000000                    // Traction fractional multiplier
+0.050000                    // Rolling resistance
+
+// Wheels entry #2
+0                           // Type
+RRWHEEL.ACT                 // Identifier
+RRWHEEL.ACT                 // Actor
+0.264,0.186,0.35725  // Position
+0                           // Steerable flags
+1                           // Driven flags
+0.020000                    // Suspension give
+0.300000                    // Damping factor
+1.000000                    // Fractional reduction in friction when slipping
+80.000000,80		        // Friction angles
+2.000000                    // Traction fractional multiplier
+0.050000                    // Rolling resistance
+
+// Wheels entry #3
+0                           // Type
+FLPIVOT.ACT                 // Identifier
+FLPIVOT.ACT                 // Actor
+-0.264,0.186,-0.35725 // Position
+1                           // Steerable flags
+0                           // Driven flags
+0.020000                    // Suspension give
+0.300000                    // Damping factor
+1.000000                    // Fractional reduction in friction when slipping
+79.500000,79.000000          // Friction angles
+1.000000                    // Traction fractional multiplier
+0.050000                    // Rolling resistance
+
+// Wheels entry #4
+0                           // Type
+FRPIVOT.ACT                 // Identifier
+FRPIVOT.ACT                 // Actor
+0.264,0.186,-0.35725 // Position
+1                           // Steerable flags
+0                           // Driven flags
+0.020000                    // Suspension give
+0.300000                    // Damping factor
+1.000000                    // Fractional reduction in friction when slipping
+79.500000,79.000000          // Friction angles
+1.000000                    // Traction fractional multiplier
+0.050000                    // Rolling resistance
+
+2                          // Number of 'Bounding shapes' entries.
+
+polyhedron
+24					// number of points
+0.416000, 0.367671, 0.461985
+0.416000, 0.147307, 0.452535
+0.416000, 0.137725, 0.385466
+-0.415626, 0.137725, 0.385466
+-0.415626, 0.147307, 0.452535
+-0.415627, 0.367671, 0.461985
+0.416000, 0.137725, -0.386903
+-0.415626, 0.137725, -0.386903
+0.416000, 0.291026, 0.538767
+-0.415627, 0.291026, 0.538767
+0.416000, 0.367671, -0.463350
+-0.415626, 0.367671, -0.463350
+0.416000, 0.291026, -0.540204
+-0.415626, 0.291026, -0.540204
+0.416000, 0.147307, -0.453972
+-0.415626, 0.147307, -0.453972
+-0.415627, 0.176050, 0.500442
+0.416000, 0.176051, 0.500442
+-0.415627, 0.223957, 0.529186
+0.416000, 0.223957, 0.529186
+0.416000, 0.176051, -0.501878
+-0.415626, 0.176050, -0.501879
+0.416000, 0.223957, -0.530622
+-0.415626, 0.223957, -0.530622
+
+polyhedron
+14					// number of points
+0.207000, 0.385948, -0.445371
+0.207000, 0.566154, -0.445371
+0.207000, 0.566154, -0.332924
+-0.207367, 0.566154, 0.433078
+-0.180325, 0.684403, -0.234091
+-0.207367, 0.566154, -0.332924
+0.207000, 0.385948, 0.433078
+-0.207367, 0.385948, 0.433078
+-0.207367, 0.385948, -0.445371
+0.207000, 0.566154, 0.433078
+0.180000, 0.684403, 0.389505
+0.180000, 0.684403, -0.234091
+-0.180325, 0.684403, 0.389505
+-0.207367, 0.566154, -0.445371
+
+0                           // Number of sub-parts.
+
+END OF MECHANICS STUFF
+
+// Materials for shrapnel
+1				// number of materials
+137, 28, 24
+
+//damage vertices fire points
+432			// engine point
+468			// transmission
+411			// driver
+454			// steering
+
+59			// lf brake
+39			// rf brake
+91			// lr brake
+72			// rr brake
+
+59			// lf wheel
+69			// rf wheel
+91			// lr wheel
+72			// rr wheel
+
+// start of keyword stuff
+
+CAMERA_POSITIONS
+0, 0.512, -0.469		// bumper position
+-0.090175, 0.59, -0.151	// cockpit position
+
+CAMERA_TURN_OFF_MATERIALS
+1							// Count
+	ihorsews.mat
+		1					// Exceptions
+			ihorsewx
+
+// End of keyword stuff
+END

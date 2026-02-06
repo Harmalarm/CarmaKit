@@ -13,23 +13,25 @@ from typing import Dict, List, Optional, Set
 
 import bpy
 import bmesh
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 
-from .data_structures import (
+from .classes.act_classes import (
     ActFile,
     ActorNode,
+)
+from .classes.dat_classes import (
     DatFile,
     DatModel,
+)
+from .classes.mat_classes import (
     Material as CarMaterial,
     MatFile,
 )
-from .parsers import (
-    ParseError,
-    find_related_files,
-    parse_act_file,
-    parse_dat_file,
-    parse_mat_file,
-)
+from .parsers.act_parser import parse_act_file
+from .parsers.dat_parser import parse_dat_file
+from .parsers.mat_parser import parse_mat_file
+from .parsers.utils import ParseError, find_related_files
+from .utils.general_utils import cleanup_scene
 
 
 def _log_verbose(message: str) -> None:
@@ -97,6 +99,8 @@ class ImportOptions:
     :type import_materials: bool
     :param import_textures: Whether to load textures.
     :type import_textures: bool
+    :param cleanup_scene: Whether to clean the scene before import.
+    :type cleanup_scene: bool
     """
 
     filepath: str
@@ -104,6 +108,7 @@ class ImportOptions:
     apply_transform: bool = True
     import_materials: bool = True
     import_textures: bool = True
+    cleanup_scene: bool = False
 
 
 @dataclass
@@ -143,10 +148,17 @@ def import_carmageddon_model(
     """
     result = ImportResult()
     _log_verbose(f"Starting import of: {options.filepath}")
-    _log_verbose(f"Options: scale={options.scale}, apply_transform={options.apply_transform}, "
-                 f"import_materials={options.import_materials}, import_textures={options.import_textures}")
+    _log_verbose(
+        f"Options: scale={options.scale}, apply_transform={options.apply_transform}, "
+        f"import_materials={options.import_materials}, import_textures={options.import_textures}, "
+        f"cleanup_scene={options.cleanup_scene}"
+    )
 
     try:
+        if options.cleanup_scene:
+            _log_verbose("Cleaning up scene before import...")
+            cleanup_scene(context)
+
         # Find related files.
         _log_verbose("Searching for related files...")
         act_path, dat_path, mat_path = find_related_files(options.filepath)
@@ -263,13 +275,34 @@ def _create_blender_materials(
     """
     result: Dict[str, bpy.types.Material] = {}
 
+    # Get game folder from preferences for texture fallback search.
+    game_folder = None
+    try:
+        prefs = bpy.context.preferences.addons[__package__].preferences
+        if prefs.game_folder:
+            game_folder = prefs.game_folder
+            _log_verbose(f"  Game folder set: {game_folder}")
+    except (KeyError, AttributeError):
+        pass
+
     for car_mat in mat_file.materials:
-        # Create or get existing material.
+        # Create or get existing material using case-insensitive lookup.
         mat_name = car_mat.name
-        if mat_name in bpy.data.materials:
-            mat = bpy.data.materials[mat_name]
+        mat_key = mat_name.lower()
+
+        # Check if material already exists (case-insensitive).
+        existing_mat = None
+        for existing in bpy.data.materials:
+            if existing.name.lower() == mat_key:
+                existing_mat = existing
+                _log_verbose(f"  Reusing existing material: '{existing.name}'")
+                break
+
+        if existing_mat:
+            mat = existing_mat
         else:
             mat = bpy.data.materials.new(name=mat_name)
+            _log_verbose(f"  Created new material: '{mat_name}'")
 
         mat.use_nodes = True
         nodes = mat.node_tree.nodes
@@ -304,36 +337,90 @@ def _create_blender_materials(
 
         # Try to load texture.
         if load_textures and car_mat.texture_name:
-            tex_path = _find_texture(base_path, car_mat.texture_name)
+            tex_path = _find_texture(base_path, car_mat.texture_name, game_folder)
             if tex_path:
                 tex_node = nodes.new('ShaderNodeTexImage')
                 tex_node.location = (-300, 0)
 
                 try:
-                    tex_node.image = bpy.data.images.load(tex_path)
+                    # Check if image already exists to avoid duplicates.
+                    existing_image = None
+                    tex_basename = os.path.basename(tex_path)
+                    for img in bpy.data.images:
+                        if img.filepath and os.path.basename(img.filepath) == tex_basename:
+                            existing_image = img
+                            break
+
+                    if existing_image:
+                        tex_node.image = existing_image
+                        _log_verbose(f"    Reusing existing texture: {tex_basename}")
+                    else:
+                        tex_node.image = bpy.data.images.load(tex_path)
+                        _log_verbose(f"    Loaded texture: {tex_path}")
+
                     links.new(
                         tex_node.outputs['Color'],
                         bsdf.inputs['Base Color']
                     )
-                except Exception:
-                    pass
 
-        result[mat_name.lower()] = mat
+                    # Check if image has alpha channel with actual transparency.
+                    img = tex_node.image
+                    if img and img.channels == 4:
+                        # Check if alpha channel has any non-opaque pixels.
+                        # Skip transparency if alpha is completely white (255).
+                        has_transparency = False
+                        try:
+                            pixels = img.pixels[:]
+                            # Alpha is every 4th value starting at index 3.
+                            for i in range(3, len(pixels), 4):
+                                if pixels[i] < 1.0:  # Alpha values are 0.0-1.0.
+                                    has_transparency = True
+                                    break
+                        except Exception:
+                            # If we can't read pixels, assume no transparency.
+                            has_transparency = False
+
+                        if has_transparency:
+                            # Connect alpha channel to BSDF alpha input.
+                            links.new(
+                                tex_node.outputs['Alpha'],
+                                bsdf.inputs['Alpha']
+                            )
+                            # Set material blend mode to support transparency.
+                            mat.blend_method = 'BLEND'
+                            mat.shadow_method = 'CLIP'
+                            _log_verbose(f"    Enabled alpha transparency for texture")
+                        else:
+                            _log_verbose(f"    Texture has alpha channel but is fully opaque, skipping transparency")
+
+                except Exception as e:
+                    _log_verbose(f"    WARNING: Failed to load texture '{tex_path}': {e}")
+            else:
+                _log_verbose(f"    WARNING: Texture '{car_mat.texture_name}' not found in tiffrgb or textures folders")
+
+        result[mat_key] = mat
 
     return result
 
 
-def _find_texture(base_path: str, texture_name: str) -> Optional[str]:
+def _find_texture(
+    base_path: str,
+    texture_name: str,
+    game_folder: Optional[str] = None
+) -> Optional[str]:
     """
     Find a texture file by name.
 
     Searches for various image formats in the base path and common
-    subdirectories.
+    subdirectories. If not found and game_folder is set, also searches
+    in the game's PIXELMAP/tiffrgb folder.
 
     :param base_path: Base directory to search.
     :type base_path: str
     :param texture_name: Name of the texture (without extension).
     :type texture_name: str
+    :param game_folder: Path to Carmageddon game installation folder.
+    :type game_folder: Optional[str]
     :return: Path to texture file if found, None otherwise.
     :rtype: Optional[str]
     """
@@ -352,6 +439,43 @@ def _find_texture(base_path: str, texture_name: str) -> Optional[str]:
         os.path.join(base_path, 'textures'),
         os.path.join(base_path, 'TEXTURES'),
     ]
+
+    # Add neighboring folders that share the first 4 characters of the
+    # current folder name. Some tracks store textures in sibling folders
+    # (e.g., airport1 textures in airp/TIFFRGB).
+    folder_name = os.path.basename(base_path.rstrip('/\\'))
+    if len(folder_name) >= 4:
+        prefix = folder_name[:4].lower()
+        parent_dir = os.path.dirname(base_path.rstrip('/\\'))
+        if os.path.isdir(parent_dir):
+            try:
+                for sibling in os.listdir(parent_dir):
+                    sibling_lower = sibling.lower()
+                    # Skip the current folder itself.
+                    if sibling_lower == folder_name.lower():
+                        continue
+                    # Check if sibling starts with the same 4-character prefix.
+                    if sibling_lower.startswith(prefix):
+                        sibling_path = os.path.join(parent_dir, sibling)
+                        if os.path.isdir(sibling_path):
+                            search_dirs.extend([
+                                os.path.join(sibling_path, 'tiffrgb'),
+                                os.path.join(sibling_path, 'TIFFRGB'),
+                                os.path.join(sibling_path, 'textures'),
+                                os.path.join(sibling_path, 'TEXTURES'),
+                            ])
+            except OSError:
+                # Ignore permission errors when listing directories.
+                pass
+
+    # Add game folder pixelmap paths if game_folder is set.
+    if game_folder:
+        game_folder = game_folder.rstrip('/\\')  # Remove trailing slashes.
+        search_dirs.extend([
+            os.path.join(game_folder, 'Data', 'Reg', 'PIXELMAP', 'tiffrgb'),
+            os.path.join(game_folder, 'DATA', 'REG', 'PIXELMAP', 'TIFFRGB'),
+            os.path.join(game_folder, 'data', 'reg', 'pixelmap', 'tiffrgb'),
+        ])
 
     for directory in search_dirs:
         if not os.path.exists(directory):
@@ -393,6 +517,8 @@ def _create_hierarchy_from_act(
     """
     created_objects: List[bpy.types.Object] = []
     _log_verbose(f"Processing ACT node: '{node.name}' (model_name='{node.model_name}', children={len(node.children)})")
+    if node.materials:
+        _log_verbose(f"  ACT node has materials: {node.materials}")
 
     # Check if this node references a model.
     if node.model_name:
@@ -401,12 +527,15 @@ def _create_hierarchy_from_act(
 
         if found_model:
             _log_verbose(f"  Found model '{found_model.name}', creating mesh...")
+            # Use ACT node materials if specified, otherwise use DAT materials.
+            act_materials = node.materials if node.materials else None
             obj = _create_mesh_from_model(
                 context,
                 found_model,
                 materials,
                 options,
-                parent
+                parent,
+                act_materials
             )
             if obj:
                 obj.name = node.name
@@ -454,7 +583,8 @@ def _create_mesh_from_model(
     model: DatModel,
     materials: Dict[str, bpy.types.Material],
     options: ImportOptions,
-    parent: Optional[bpy.types.Object]
+    parent: Optional[bpy.types.Object],
+    act_materials: Optional[List[str]] = None
 ) -> Optional[bpy.types.Object]:
     """
     Create a Blender mesh object from a DAT model.
@@ -469,6 +599,8 @@ def _create_mesh_from_model(
     :type options: ImportOptions
     :param parent: Parent Blender object.
     :type parent: Optional[bpy.types.Object]
+    :param act_materials: Material names from ACT file (overrides DAT).
+    :type act_materials: Optional[List[str]]
     :return: Created Blender object.
     :rtype: Optional[bpy.types.Object]
     """
@@ -503,16 +635,36 @@ def _create_mesh_from_model(
     bm.verts.ensure_lookup_table()
     _log_verbose(f"    Added {len(bm.verts)} vertices to bmesh (with Y-up to Z-up conversion)")
 
+    # Determine which material list to use.
+    # ACT materials override DAT materials when specified.
+    material_names = act_materials if act_materials else model.materials
+    if act_materials:
+        _log_verbose(f"    Using ACT materials: {act_materials}")
+    else:
+        _log_verbose(f"    Using DAT materials: {model.materials}")
+
     # Add materials to mesh.
     mat_name_to_index: Dict[str, int] = {}
-    for mat_name in model.materials:
+    for mat_name in material_names:
         mat_key = mat_name.lower()
         if mat_key in materials:
             blender_mat = materials[mat_key]
         else:
-            # Create placeholder material.
-            blender_mat = bpy.data.materials.new(name=mat_name)
-            blender_mat.use_nodes = True
+            # Check if material exists in bpy.data.materials (case-insensitive).
+            existing_mat = None
+            for existing in bpy.data.materials:
+                if existing.name.lower() == mat_key:
+                    existing_mat = existing
+                    break
+
+            if existing_mat:
+                blender_mat = existing_mat
+                _log_verbose(f"    Reusing existing material: '{existing_mat.name}'")
+            else:
+                # Create placeholder material.
+                blender_mat = bpy.data.materials.new(name=mat_name)
+                blender_mat.use_nodes = True
+                _log_verbose(f"    Created placeholder material: '{mat_name}'")
 
         mesh.materials.append(blender_mat)
         mat_name_to_index[mat_key] = len(mesh.materials) - 1
@@ -523,7 +675,10 @@ def _create_mesh_from_model(
     faces_created = 0
     faces_failed = 0
 
-    for face in model.faces:
+    # Track face smoothing groups for edge smoothing calculation.
+    face_smoothing_groups: Dict[int, int] = {}  # bmesh face index -> smoothing group
+
+    for face_idx, face in enumerate(model.faces):
         try:
             verts = [
                 bm.verts[face.v1],
@@ -532,11 +687,14 @@ def _create_mesh_from_model(
             ]
             bm_face = bm.faces.new(verts)
 
+            # Store smoothing group for later edge processing.
+            face_smoothing_groups[bm_face.index] = face.smoothing_group
+
             # Set material index.
             if face.material_index > 0 and face.material_index <= len(
-                model.materials
+                material_names
             ):
-                mat_name = model.materials[face.material_index - 1].lower()
+                mat_name = material_names[face.material_index - 1].lower()
                 if mat_name in mat_name_to_index:
                     bm_face.material_index = mat_name_to_index[mat_name]
 
@@ -555,9 +713,92 @@ def _create_mesh_from_model(
             continue
 
     _log_verbose(f"    Faces created: {faces_created}, failed: {faces_failed}")
+
+    # Apply smoothing groups by marking edges as sharp or smooth.
+    # An edge is sharp if adjacent faces have different smoothing groups.
+    _log_verbose(f"    Processing smoothing groups...")
+    bm.edges.ensure_lookup_table()
+    sharp_edges = 0
+    smooth_edges = 0
+
+    for edge in bm.edges:
+        linked_faces = edge.link_faces
+        if len(linked_faces) == 2:
+            # Get smoothing groups of both adjacent faces.
+            sg1 = face_smoothing_groups.get(linked_faces[0].index, 0)
+            sg2 = face_smoothing_groups.get(linked_faces[1].index, 0)
+
+            if sg1 != sg2:
+                # Different smoothing groups -> sharp edge.
+                edge.smooth = False
+                sharp_edges += 1
+            else:
+                # Same smoothing group -> smooth edge.
+                edge.smooth = True
+                smooth_edges += 1
+        elif len(linked_faces) == 1:
+            # Boundary edge - mark as sharp.
+            edge.smooth = False
+            sharp_edges += 1
+        else:
+            # No faces or more than 2 faces - default to smooth.
+            edge.smooth = True
+            smooth_edges += 1
+
+    _log_verbose(f"    Smoothing: {sharp_edges} sharp edges, {smooth_edges} smooth edges")
+
     _log_verbose(f"    Converting bmesh to mesh...")
     bm.to_mesh(mesh)
     bm.free()
+
+    # Apply edge visibility (hidden edges) after bmesh conversion.
+    # This must be done on the final mesh, not bmesh.
+    _log_verbose(f"    Processing edge visibility...")
+    hidden_edges = 0
+    for face_idx, face in enumerate(model.faces):
+        if face_idx >= len(mesh.polygons):
+            break
+
+        edgevis = face.edge_visibility
+        if edgevis == 0:
+            continue  # All edges visible.
+
+        poly = mesh.polygons[face_idx]
+        loop_start = poly.loop_start
+
+        # Get edge indices for this face's loops.
+        # Each loop corresponds to an edge.
+        for i in range(3):
+            edge_hidden = False
+            if i == 0 and (edgevis & 1):  # Bit 0: Edge 0
+                edge_hidden = True
+            elif i == 1 and (edgevis & 2):  # Bit 1: Edge 1
+                edge_hidden = True
+            elif i == 2 and (edgevis & 4):  # Bit 2: Edge 2
+                edge_hidden = True
+
+            if edge_hidden:
+                loop_idx = loop_start + i
+                if loop_idx < len(mesh.loops):
+                    edge_idx = mesh.loops[loop_idx].edge_index
+                    mesh.edges[edge_idx].hide = True
+                    hidden_edges += 1
+
+    _log_verbose(f"    Hidden edges: {hidden_edges}")
+
+    # Enable auto smooth for the mesh to respect sharp edges.
+    # Note: use_auto_smooth was deprecated in Blender 4.1+.
+    try:
+        mesh.use_auto_smooth = True
+        mesh.auto_smooth_angle = 3.14159  # 180 degrees - let sharp marks control.
+    except AttributeError:
+        # Blender 4.1+ uses sharp edges directly without auto_smooth.
+        pass
+
+    # Enable smooth shading on all polygons to show smoothing groups effect.
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    _log_verbose(f"    Enabled smooth shading on {len(mesh.polygons)} polygons")
 
     # Update mesh.
     mesh.update()
@@ -603,7 +844,9 @@ def _apply_transform(
     """
     Apply transformation from ACT node to Blender object.
 
-    Converts from Carmageddon Y-up to Blender Z-up coordinate system.
+    Converts from Carmageddon Y-up to Blender Z-up coordinate system by
+    decomposing the matrix into rotation, translation, and scale, then
+    re-arranging axes appropriately.
 
     :param obj: The Blender object to transform.
     :type obj: bpy.types.Object
@@ -615,26 +858,43 @@ def _apply_transform(
     :rtype: None
     """
     # Build 4x4 matrix from 3x4 Carmageddon matrix.
+    # Layout: x1,x2,x3, y1,y2,y3, z1,z2,z3, p1,p2,p3
     m = node.transform.values
 
-    # Carmageddon matrix layout (Y-up):
-    # Xx, Yx, Zx (row 0)
-    # Xy, Yy, Zy (row 1)
-    # Xz, Yz, Zz (row 2)
-    # Px, Py, Pz (position)
-
-    # Convert position from Y-up to Z-up: X stays, Y becomes Z, Z becomes -Y.
-    pos_x = m[9] * scale
-    pos_y = -m[11] * scale
-    pos_z = m[10] * scale
-
-    # Convert rotation matrix from Y-up to Z-up.
-    # Apply axis swap to both rows and columns.
-    matrix = Matrix((
-        (m[0], -m[2], m[1], pos_x),
-        (-m[6], m[8], -m[7], pos_y),
-        (m[3], -m[5], m[4], pos_z),
+    # Build original matrix in Carmageddon format.
+    act_matrix = Matrix((
+        (m[0], m[1], m[2], m[9]),
+        (m[3], m[4], m[5], m[10]),
+        (m[6], m[7], m[8], m[11]),
         (0.0, 0.0, 0.0, 1.0)
     ))
 
-    obj.matrix_local = matrix
+    # Extract rotation as Euler and re-arrange for Y-up to Z-up conversion.
+    euler = act_matrix.to_euler('XYZ')
+    rotation_matrix = Euler(
+        (-euler.x, euler.z, -euler.y), 'YZX'
+    ).to_matrix().to_4x4()
+
+    # Create translation matrix with axis swap: X stays, Y becomes -Z, Z becomes Y.
+    p1 = m[9] * scale
+    p2 = m[10] * scale
+    p3 = m[11] * scale
+    translation_matrix = Matrix.Translation(Vector((p1, -p3, p2)))
+
+    # Extract scale from column lengths and re-arrange.
+    scale_x = act_matrix.col[0].xyz.length
+    scale_y = act_matrix.col[1].xyz.length
+    scale_z = act_matrix.col[2].xyz.length
+    scale_matrix = Matrix.Diagonal(
+        Vector((scale_x, scale_z, scale_y, 1.0))
+    )
+
+    # Compose final transformation matrix.
+    transformation_matrix = translation_matrix @ rotation_matrix @ scale_matrix
+
+    # Apply using matrix_world to properly handle parent relationships.
+    # When parent exists, multiply with parent's world matrix.
+    if obj.parent is not None:
+        obj.matrix_world = transformation_matrix @ obj.parent.matrix_world
+    else:
+        obj.matrix_world = transformation_matrix
