@@ -23,7 +23,11 @@ from ..classes.mat_classes import Material, MatFile
 from .utils import write_file_header
 
 
-def write_mat_file(filepath: str, mat_file: MatFile) -> None:
+def write_mat_file(
+    filepath: str,
+    mat_file: MatFile,
+    game_version: str = 'C2'
+) -> None:
     """
     Write a MAT material file.
 
@@ -31,6 +35,8 @@ def write_mat_file(filepath: str, mat_file: MatFile) -> None:
     :type filepath: str
     :param mat_file: The MAT file structure to write.
     :type mat_file: MatFile
+    :param game_version: Target Carmageddon game version.
+    :type game_version: str
     :return: None.
     :rtype: None
     """
@@ -38,10 +44,14 @@ def write_mat_file(filepath: str, mat_file: MatFile) -> None:
         write_file_header(f, FILE_TYPE_MAT)
 
         for material in mat_file.materials:
-            _write_mat_material(f, material)
+            _write_mat_material(f, material, game_version)
 
 
-def _write_mat_material(f: BinaryIO, material: Material) -> None:
+def _write_mat_material(
+    f: BinaryIO,
+    material: Material,
+    game_version: str
+) -> None:
     """
     Write a single material to a MAT file.
 
@@ -49,11 +59,14 @@ def _write_mat_material(f: BinaryIO, material: Material) -> None:
     :type f: BinaryIO
     :param material: The material to write.
     :type material: Material
+    :param game_version: Target Carmageddon game version.
+    :type game_version: str
     :return: None.
     :rtype: None
     """
     # Calculate record length.
-    name_bytes = material.name.encode('ascii') + b'\x00'
+    material_name = _format_mat_name(material.name, game_version)
+    name_bytes = material_name.encode('ascii') + b'\x00'
     # 4 (color) + 16 (lighting) + 4 (flags) + 24 (uv) + 4 (unknown) +
     # 13 (padding) + name
     record_length = 4 + 16 + 4 + 24 + 4 + 13 + len(name_bytes)
@@ -86,9 +99,53 @@ def _write_mat_material(f: BinaryIO, material: Material) -> None:
 
     # Write texture name if present.
     if material.texture_name:
-        tex_bytes = material.texture_name.encode('ascii') + b'\x00'
+        texture_name = _format_pix_name(
+            material.texture_name,
+            game_version
+        )
+        tex_bytes = texture_name.encode('ascii') + b'\x00'
         write_record_header(f, MAT_RECORD_IMAGE_NAME, len(tex_bytes))
         f.write(tex_bytes)
 
     # Write null marker to end material.
     write_null_marker(f)
+
+
+def _format_mat_name(name: str, game_version: str) -> str:
+    """
+    Format the material name based on game version requirements.
+
+    :param name: The material name.
+    :type name: str
+    :param game_version: Target Carmageddon game version.
+    :type game_version: str
+    :return: Formatted material name.
+    :rtype: str
+    """
+    if game_version != 'C1':
+        return name
+
+    if name.lower().endswith('.mat'):
+        return name
+
+    return f"{name}.MAT"
+
+
+def _format_pix_name(name: str, game_version: str) -> str:
+    """
+    Format the texture name based on game version requirements.
+
+    :param name: The texture name.
+    :type name: str
+    :param game_version: Target Carmageddon game version.
+    :type game_version: str
+    :return: Formatted texture name.
+    :rtype: str
+    """
+    if game_version != 'C1':
+        return name
+
+    if name.lower().endswith('.pix'):
+        return name
+
+    return f"{name}.PIX"

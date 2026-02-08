@@ -6,12 +6,51 @@ the main interface for the CarmaKit addon.
 
 
 """
-
-from typing import Set
-
+import sys
+from typing import Optional, Set
 import bpy
 from bpy.types import Context, Panel
 
+from .utils.general_utils import get_export_vertex_index
+
+
+def _get_addon_key() -> str:
+    """
+    Get the addon key used by Blender preferences.
+
+    :return: Addon key name.
+    :rtype: str
+    """
+    # Use the last package segment for src-layout compatibility.
+    package = __package__ or __name__
+    return package.split(".")[-1]
+
+
+def _find_addon() -> Optional[bpy.types.Addon]:
+    """
+    Find the addon entry in Blender preferences.
+
+    :return: Addon entry or None when not found.
+    :rtype: Optional[bpy.types.Addon]
+    """
+    addons = bpy.context.preferences.addons
+    addon = addons.get(_get_addon_key())
+    if addon:
+        return addon
+
+    for candidate in addons:
+        module = getattr(candidate, "module", None)
+        bl_info = getattr(module, "bl_info", {})
+        if bl_info.get("name") == "CarmaKit - Carmageddon Model Tools":
+            return candidate
+
+    return None
+
+def get_addon_version():
+    addon = sys.modules.get(__package__)
+    if addon and hasattr(addon, "bl_info"):
+        return addon.bl_info.get("version", (0, 0, 0))
+    return (0, 0, 0)
 
 class CARMAKIT_PT_main_panel(Panel):
     """
@@ -38,6 +77,17 @@ class CARMAKIT_PT_main_panel(Panel):
         """
         layout = self.layout
 
+        header = layout.box()
+        row = header.row(align=True)
+        row.label(text=f"Version {get_addon_version()}", icon='INFO')
+        sub = row.row(align=True)
+        sub.scale_x = 1.0
+        sub.operator(
+            "carmakit.open_preferences",
+            text="",
+            icon='PREFERENCES'
+        )
+
         # Import/Export section.
         box = layout.box()
         box.label(text="Import / Export", icon='FILE_3D')
@@ -55,39 +105,52 @@ class CARMAKIT_PT_main_panel(Panel):
             icon='EXPORT'
         )
 
-        # Info section.
+
+class CARMAKIT_PT_tools_panel(Panel):
+    """
+    Tools panel for quick CarmaKit utilities.
+    """
+
+    bl_idname = "CARMAKIT_PT_tools_panel"
+    bl_label = "Tools"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "CarmaKit"
+    bl_parent_id = "CARMAKIT_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context: Context) -> None:
+        """
+        Draw the tools panel contents.
+
+        :param context: The Blender context.
+        :type context: Context
+        :return: None.
+        :rtype: None
+        """
+        layout = self.layout
         box = layout.box()
-        box.label(text="Scene Info", icon='INFO')
+        box.label(text="Export Vertex Index", icon='VERTEXSEL')
 
-        # Count mesh objects in scene.
-        mesh_count = sum(
-            1 for obj in context.scene.objects if obj.type == 'MESH'
-        )
-        selected_count = sum(
-            1 for obj in context.selected_objects if obj.type == 'MESH'
-        )
+        result = get_export_vertex_index(context)
+        if result.status == "ok":
+            box.label(
+                text=f"{result.message}: {result.index}",
+                icon='DOT'
+            )
+        elif result.status == "error":
+            box.label(text=result.message, icon='ERROR')
+        else:
+            box.label(text=result.message, icon='INFO')
 
-        col = box.column(align=True)
-        col.label(text=f"Mesh Objects: {mesh_count}")
-        col.label(text=f"Selected Meshes: {selected_count}")
+        if result.modifier_warning:
+            box.label(
+                text="Apply Modifiers is enabled; indices may differ.",
+                icon='ERROR'
+            )
 
-        # Quick settings section.
-        box = layout.box()
-        box.label(text="Quick Settings", icon='PREFERENCES')
 
-        # Get addon preferences.
-        prefs = context.preferences.addons.get(__package__)
-        if prefs:
-            box.prop(prefs.preferences, "game_version")
-            box.prop(prefs.preferences, "debug_logging")
 
-        # Button to open addon preferences.
-        row = box.row()
-        row.operator(
-            "carmakit.open_preferences",
-            text="Open Addon Settings",
-            icon='SETTINGS'
-        )
 
 
 class CARMAKIT_OT_open_preferences(bpy.types.Operator):

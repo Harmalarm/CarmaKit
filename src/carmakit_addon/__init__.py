@@ -12,7 +12,7 @@ MAT (material), and related formats.
 
 bl_info = {
     "name": "CarmaKit - Carmageddon Model Tools",
-    "author": "CarmaKit Team",
+    "author": "Harmalarm",
     "version": (0, 1, 0),
     "blender": (5, 0, 0),
     "location": "File > Import/Export > Carmageddon",
@@ -38,6 +38,7 @@ _classes: List[type] = [
     operators.CARMAKIT_OT_export_model,
     panels.CARMAKIT_OT_open_preferences,
     panels.CARMAKIT_PT_main_panel,
+    panels.CARMAKIT_PT_tools_panel,
 ]
 
 

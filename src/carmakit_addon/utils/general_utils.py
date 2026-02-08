@@ -7,9 +7,92 @@ import/export format, such as scene cleanup.
 
 """
 
-from typing import Iterable
+from dataclasses import dataclass
+from typing import Iterable, Optional
 
+import bmesh
 import bpy
+
+
+@dataclass
+class ExportVertexIndexResult:
+    """
+    Result for exporting a single vertex index lookup.
+
+    :param status: Status string for UI mapping.
+    :type status: str
+    :param message: User-facing message describing the status.
+    :type message: str
+    :param index: Export vertex index when available.
+    :type index: Optional[int]
+    :param modifier_warning: Whether to warn about modifier effects.
+    :type modifier_warning: bool
+    """
+
+    status: str
+    message: str
+    index: Optional[int] = None
+    modifier_warning: bool = False
+
+
+def get_export_vertex_index(
+    context: bpy.types.Context
+) -> ExportVertexIndexResult:
+    """
+    Get the Carmageddon export vertex index for a single selection.
+
+    :param context: The Blender context.
+    :type context: bpy.types.Context
+    :return: Result with status, message, and export index.
+    :rtype: ExportVertexIndexResult
+    """
+    obj = context.active_object
+    if not obj or obj.type != 'MESH':
+        return ExportVertexIndexResult(
+            status="info",
+            message="Select a mesh object."
+        )
+
+    if context.mode != 'EDIT_MESH':
+        return ExportVertexIndexResult(
+            status="info",
+            message="Enter Edit Mode and select one vertex."
+        )
+
+    bm = bmesh.from_edit_mesh(obj.data)
+    bm.verts.ensure_lookup_table()
+    selected_verts = [vert for vert in bm.verts if vert.select]
+
+    if not selected_verts:
+        return ExportVertexIndexResult(
+            status="info",
+            message="No vertex selected."
+        )
+
+    if len(selected_verts) > 1:
+        return ExportVertexIndexResult(
+            status="error",
+            message=(
+                f"Multiple vertices selected ({len(selected_verts)})."
+            )
+        )
+
+    modifier_warning = False
+    try:
+        addon_key = (__package__ or "").split(".")[0]
+        prefs = bpy.context.preferences.addons[addon_key].preferences
+        modifier_warning = bool(
+            prefs.export_apply_modifiers and obj.modifiers
+        )
+    except (KeyError, AttributeError, IndexError):
+        pass
+
+    return ExportVertexIndexResult(
+        status="ok",
+        message="Carmageddon index",
+        index=selected_verts[0].index,
+        modifier_warning=modifier_warning
+    )
 
 
 def cleanup_scene(

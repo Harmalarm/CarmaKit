@@ -8,6 +8,7 @@
 # Blender Python API for headless testing
 --extra-index-url https://download.blender.org/pypi/
 bpy==5.0.1
+fake-bpy-module
 
 # Testing
 pytest>=7.0

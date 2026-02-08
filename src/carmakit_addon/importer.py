@@ -32,11 +32,12 @@ from .parsers.dat_parser import parse_dat_file
 from .parsers.mat_parser import parse_mat_file
 from .parsers.utils import ParseError, find_related_files
 from .utils.general_utils import cleanup_scene
+from .constants import BRU_SCALE_FACTOR
 
 
-def _log_verbose(message: str) -> None:
+def _log_debug(message: str) -> None:
     """
-    Log a verbose message if verbose import logging is enabled.
+    Log a debug message when debug logging is enabled.
 
     :param message: The message to log.
     :type message: str
@@ -45,7 +46,7 @@ def _log_verbose(message: str) -> None:
     """
     try:
         prefs = bpy.context.preferences.addons[__package__].preferences
-        if prefs.verbose_import_logging:
+        if prefs.debug_logging:
             print(f"[CarmaKit Import] {message}")
     except (KeyError, AttributeError):
         # Addon preferences not available, skip logging.
@@ -77,10 +78,10 @@ def _find_model_in_dict(
         key = key + '.DAT'
 
     if key in models:
-        _log_verbose(f"    Found model with key '{key}'")
+        _log_debug(f"    Found model with key '{key}'")
         return models[key]
 
-    _log_verbose(f"    Model key '{key}' not found")
+    _log_debug(f"    Model key '{key}' not found")
     return None
 
 
@@ -147,8 +148,9 @@ def import_carmageddon_model(
     :rtype: ImportResult
     """
     result = ImportResult()
-    _log_verbose(f"Starting import of: {options.filepath}")
-    _log_verbose(
+    _apply_bru_import_scale(options)
+    _log_debug(f"Starting import of: {options.filepath}")
+    _log_debug(
         f"Options: scale={options.scale}, apply_transform={options.apply_transform}, "
         f"import_materials={options.import_materials}, import_textures={options.import_textures}, "
         f"cleanup_scene={options.cleanup_scene}"
@@ -156,15 +158,15 @@ def import_carmageddon_model(
 
     try:
         if options.cleanup_scene:
-            _log_verbose("Cleaning up scene before import...")
+            _log_debug("Cleaning up scene before import...")
             cleanup_scene(context)
 
         # Find related files.
-        _log_verbose("Searching for related files...")
+        _log_debug("Searching for related files...")
         act_path, dat_path, mat_path = find_related_files(options.filepath)
-        _log_verbose(f"  ACT file: {act_path or 'not found'}")
-        _log_verbose(f"  DAT file: {dat_path or 'not found'}")
-        _log_verbose(f"  MAT file: {mat_path or 'not found'}")
+        _log_debug(f"  ACT file: {act_path or 'not found'}")
+        _log_debug(f"  DAT file: {dat_path or 'not found'}")
+        _log_debug(f"  MAT file: {mat_path or 'not found'}")
 
         # Determine which file was selected and adjust paths.
         ext = os.path.splitext(options.filepath)[1].lower()
@@ -176,49 +178,56 @@ def import_carmageddon_model(
         # Load materials first.
         materials: Dict[str, bpy.types.Material] = {}
         if options.import_materials and mat_path:
-            _log_verbose(f"Loading materials from: {mat_path}")
+            _log_debug(f"Loading materials from: {mat_path}")
             try:
                 mat_file = parse_mat_file(mat_path)
-                _log_verbose(f"  Parsed {len(mat_file.materials)} materials from MAT file")
+                _log_debug(
+                    f"  Parsed {len(mat_file.materials)} materials from MAT file"
+                )
                 materials = _create_blender_materials(
                     mat_file,
                     os.path.dirname(mat_path),
                     options.import_textures
                 )
-                _log_verbose(f"  Created {len(materials)} Blender materials")
+                _log_debug(f"  Created {len(materials)} Blender materials")
             except Exception as e:
                 print(f"Warning: Could not load materials: {e}")
-                _log_verbose(f"  ERROR loading materials: {e}")
+                _log_debug(f"  ERROR loading materials: {e}")
 
         # Load DAT models.
         models: Dict[str, DatModel] = {}
         if dat_path:
-            _log_verbose(f"Loading models from: {dat_path}")
+            _log_debug(f"Loading models from: {dat_path}")
             try:
                 dat_file = parse_dat_file(dat_path)
-                _log_verbose(f"  Parsed DAT file with {len(dat_file.models)} models")
+                _log_debug(
+                    f"  Parsed DAT file with {len(dat_file.models)} models"
+                )
                 for model in dat_file.models:
                     # Store with uppercase name including .DAT extension.
                     key = model.name.upper()
                     if not key.endswith('.DAT'):
                         key = key + '.DAT'
                     models[key] = model
-                    _log_verbose(f"    Model '{model.name}': {len(model.vertices)} verts, {len(model.faces)} faces")
-                    _log_verbose(f"      Registered key: '{key}'")
+                    _log_debug(
+                        f"    Model '{model.name}': {len(model.vertices)} "
+                        f"verts, {len(model.faces)} faces"
+                    )
+                    _log_debug(f"      Registered key: '{key}'")
             except Exception as e:
-                _log_verbose(f"  ERROR parsing DAT file: {e}")
+                _log_debug(f"  ERROR parsing DAT file: {e}")
                 result.error_message = f"Failed to parse DAT file: {e}"
                 result.success = False
                 return result
 
         # Load ACT hierarchy or create simple scene from DAT.
         if act_path:
-            _log_verbose(f"Loading ACT hierarchy from: {act_path}")
+            _log_debug(f"Loading ACT hierarchy from: {act_path}")
             try:
                 act_file = parse_act_file(act_path)
-                _log_verbose(f"  ACT file parsed, root node: {act_file.root.name if act_file.root else 'None'}")
+                _log_debug(f"  ACT file parsed, root node: {act_file.root.name if act_file.root else 'None'}")
                 if act_file.root:
-                    _log_verbose("  Creating Blender hierarchy from ACT...")
+                    _log_debug("  Creating Blender hierarchy from ACT...")
                     objects = _create_hierarchy_from_act(
                         context,
                         act_file.root,
@@ -228,32 +237,54 @@ def import_carmageddon_model(
                         None
                     )
                     result.objects_created = len(objects)
-                    _log_verbose(f"  Created {len(objects)} objects from ACT hierarchy")
+                    _log_debug(f"  Created {len(objects)} objects from ACT hierarchy")
             except Exception as e:
-                _log_verbose(f"  ERROR parsing ACT file: {e}")
+                _log_debug(f"  ERROR parsing ACT file: {e}")
                 result.error_message = f"Failed to parse ACT file: {e}"
                 result.success = False
                 return result
         else:
             # No ACT file, just import DAT models directly.
-            _log_verbose(f"No ACT file, importing {len(models)} models directly from DAT")
+            _log_debug(f"No ACT file, importing {len(models)} models directly from DAT")
             for model in models.values():
-                _log_verbose(f"  Creating mesh for model: {model.name}")
+                _log_debug(f"  Creating mesh for model: {model.name}")
                 _create_mesh_from_model(
                     context, model, materials, options, None
                 )
                 result.objects_created += 1
-                _log_verbose(f"    Done creating mesh for {model.name}")
+                _log_debug(f"    Done creating mesh for {model.name}")
 
     except Exception as e:
         result.error_message = str(e)
         result.success = False
-        _log_verbose(f"Import failed with exception: {e}")
+        _log_debug(f"Import failed with exception: {e}")
 
-    _log_verbose(f"Import complete: success={result.success}, objects_created={result.objects_created}")
+    _log_debug(f"Import complete: success={result.success}, objects_created={result.objects_created}")
     if result.error_message:
-        _log_verbose(f"  Error message: {result.error_message}")
+        _log_debug(f"  Error message: {result.error_message}")
     return result
+
+
+def _apply_bru_import_scale(options: ImportOptions) -> None:
+    """
+    Apply BRU unit conversion to the import scale when enabled.
+
+    :param options: Import options to update.
+    :type options: ImportOptions
+    :return: None.
+    :rtype: None
+    """
+    try:
+        prefs = bpy.context.preferences.addons[__package__].preferences
+        if prefs.use_bru_scale:
+            options.scale *= BRU_SCALE_FACTOR
+            _log_debug(
+                "BRU conversion enabled; import scale multiplied by "
+                f"{BRU_SCALE_FACTOR}"
+            )
+    except (KeyError, AttributeError):
+        # Addon preferences not available, skip scaling.
+        pass
 
 
 def _create_blender_materials(
@@ -281,7 +312,7 @@ def _create_blender_materials(
         prefs = bpy.context.preferences.addons[__package__].preferences
         if prefs.game_folder:
             game_folder = prefs.game_folder
-            _log_verbose(f"  Game folder set: {game_folder}")
+            _log_debug(f"  Game folder set: {game_folder}")
     except (KeyError, AttributeError):
         pass
 
@@ -295,14 +326,14 @@ def _create_blender_materials(
         for existing in bpy.data.materials:
             if existing.name.lower() == mat_key:
                 existing_mat = existing
-                _log_verbose(f"  Reusing existing material: '{existing.name}'")
+                _log_debug(f"  Reusing existing material: '{existing.name}'")
                 break
 
         if existing_mat:
             mat = existing_mat
         else:
             mat = bpy.data.materials.new(name=mat_name)
-            _log_verbose(f"  Created new material: '{mat_name}'")
+            _log_debug(f"  Created new material: '{mat_name}'")
 
         mat.use_nodes = True
         nodes = mat.node_tree.nodes
@@ -353,10 +384,10 @@ def _create_blender_materials(
 
                     if existing_image:
                         tex_node.image = existing_image
-                        _log_verbose(f"    Reusing existing texture: {tex_basename}")
+                        _log_debug(f"    Reusing existing texture: {tex_basename}")
                     else:
                         tex_node.image = bpy.data.images.load(tex_path)
-                        _log_verbose(f"    Loaded texture: {tex_path}")
+                        _log_debug(f"    Loaded texture: {tex_path}")
 
                     links.new(
                         tex_node.outputs['Color'],
@@ -389,14 +420,14 @@ def _create_blender_materials(
                             # Set material blend mode to support transparency.
                             mat.blend_method = 'BLEND'
                             mat.shadow_method = 'CLIP'
-                            _log_verbose(f"    Enabled alpha transparency for texture")
+                            _log_debug(f"    Enabled alpha transparency for texture")
                         else:
-                            _log_verbose(f"    Texture has alpha channel but is fully opaque, skipping transparency")
+                            _log_debug(f"    Texture has alpha channel but is fully opaque, skipping transparency")
 
                 except Exception as e:
-                    _log_verbose(f"    WARNING: Failed to load texture '{tex_path}': {e}")
+                    _log_debug(f"    WARNING: Failed to load texture '{tex_path}': {e}")
             else:
-                _log_verbose(f"    WARNING: Texture '{car_mat.texture_name}' not found in tiffrgb or textures folders")
+                _log_debug(f"    WARNING: Texture '{car_mat.texture_name}' not found in tiffrgb or textures folders")
 
         result[mat_key] = mat
 
@@ -516,17 +547,17 @@ def _create_hierarchy_from_act(
     :rtype: List[bpy.types.Object]
     """
     created_objects: List[bpy.types.Object] = []
-    _log_verbose(f"Processing ACT node: '{node.name}' (model_name='{node.model_name}', children={len(node.children)})")
+    _log_debug(f"Processing ACT node: '{node.name}' (model_name='{node.model_name}', children={len(node.children)})")
     if node.materials:
-        _log_verbose(f"  ACT node has materials: {node.materials}")
+        _log_debug(f"  ACT node has materials: {node.materials}")
 
     # Check if this node references a model.
     if node.model_name:
-        _log_verbose(f"  Looking for model: '{node.model_name}'")
+        _log_debug(f"  Looking for model: '{node.model_name}'")
         found_model = _find_model_in_dict(node.model_name, models)
 
         if found_model:
-            _log_verbose(f"  Found model '{found_model.name}', creating mesh...")
+            _log_debug(f"  Found model '{found_model.name}', creating mesh...")
             # Use ACT node materials if specified, otherwise use DAT materials.
             act_materials = node.materials if node.materials else None
             obj = _create_mesh_from_model(
@@ -539,18 +570,18 @@ def _create_hierarchy_from_act(
             )
             if obj:
                 obj.name = node.name
-                _log_verbose(f"  Created mesh object: '{obj.name}'")
+                _log_debug(f"  Created mesh object: '{obj.name}'")
                 if options.apply_transform:
-                    _log_verbose(f"    Applying transform to '{obj.name}'")
+                    _log_debug(f"    Applying transform to '{obj.name}'")
                     _apply_transform(obj, node, options.scale)
                 created_objects.append(obj)
                 parent = obj
             else:
-                _log_verbose(f"  WARNING: _create_mesh_from_model returned None for '{found_model.name}'")
+                _log_debug(f"  WARNING: _create_mesh_from_model returned None for '{found_model.name}'")
         else:
-            _log_verbose(f"  Model '{node.model_name}' not found in loaded models, available: {list(models.keys())}")
+            _log_debug(f"  Model '{node.model_name}' not found in loaded models, available: {list(models.keys())}")
             # Create empty for hierarchy node.
-            _log_verbose(f"  Creating empty for missing model node: '{node.name}'")
+            _log_debug(f"  Creating empty for missing model node: '{node.name}'")
             obj = _create_empty(context, node.name, parent)
             if options.apply_transform:
                 _apply_transform(obj, node, options.scale)
@@ -558,7 +589,7 @@ def _create_hierarchy_from_act(
             parent = obj
     else:
         # Create empty for hierarchy node without model.
-        _log_verbose(f"  Node '{node.name}' has no model, creating empty")
+        _log_debug(f"  Node '{node.name}' has no model, creating empty")
         obj = _create_empty(context, node.name, parent)
         if options.apply_transform:
             _apply_transform(obj, node, options.scale)
@@ -567,14 +598,14 @@ def _create_hierarchy_from_act(
 
     # Process children recursively.
     if node.children:
-        _log_verbose(f"  Processing {len(node.children)} children of '{node.name}'")
+        _log_debug(f"  Processing {len(node.children)} children of '{node.name}'")
     for child in node.children:
         child_objects = _create_hierarchy_from_act(
             context, child, models, materials, options, parent
         )
         created_objects.extend(child_objects)
 
-    _log_verbose(f"  Finished node '{node.name}', created {len(created_objects)} objects")
+    _log_debug(f"  Finished node '{node.name}', created {len(created_objects)} objects")
     return created_objects
 
 
@@ -604,13 +635,13 @@ def _create_mesh_from_model(
     :return: Created Blender object.
     :rtype: Optional[bpy.types.Object]
     """
-    _log_verbose(f"  _create_mesh_from_model: '{model.name}' - {len(model.vertices)} verts, {len(model.faces)} faces")
+    _log_debug(f"  _create_mesh_from_model: '{model.name}' - {len(model.vertices)} verts, {len(model.faces)} faces")
     if not model.vertices or not model.faces:
-        _log_verbose(f"    WARNING: Model '{model.name}' has no vertices or faces, skipping")
+        _log_debug(f"    WARNING: Model '{model.name}' has no vertices or faces, skipping")
         return None
 
     # Create mesh.
-    _log_verbose(f"    Creating Blender mesh...")
+    _log_debug(f"    Creating Blender mesh...")
     mesh = bpy.data.meshes.new(name=model.name)
     obj = bpy.data.objects.new(model.name, mesh)
 
@@ -622,7 +653,7 @@ def _create_mesh_from_model(
         obj.parent = parent
 
     # Create bmesh.
-    _log_verbose(f"    Creating bmesh and adding vertices...")
+    _log_debug(f"    Creating bmesh and adding vertices...")
     bm = bmesh.new()
 
     # Add vertices with axis conversion.
@@ -633,15 +664,15 @@ def _create_mesh_from_model(
         bm.verts.new((v.x * scale, -v.z * scale, v.y * scale))
 
     bm.verts.ensure_lookup_table()
-    _log_verbose(f"    Added {len(bm.verts)} vertices to bmesh (with Y-up to Z-up conversion)")
+    _log_debug(f"    Added {len(bm.verts)} vertices to bmesh (with Y-up to Z-up conversion)")
 
     # Determine which material list to use.
     # ACT materials override DAT materials when specified.
     material_names = act_materials if act_materials else model.materials
     if act_materials:
-        _log_verbose(f"    Using ACT materials: {act_materials}")
+        _log_debug(f"    Using ACT materials: {act_materials}")
     else:
-        _log_verbose(f"    Using DAT materials: {model.materials}")
+        _log_debug(f"    Using DAT materials: {model.materials}")
 
     # Add materials to mesh.
     mat_name_to_index: Dict[str, int] = {}
@@ -659,18 +690,18 @@ def _create_mesh_from_model(
 
             if existing_mat:
                 blender_mat = existing_mat
-                _log_verbose(f"    Reusing existing material: '{existing_mat.name}'")
+                _log_debug(f"    Reusing existing material: '{existing_mat.name}'")
             else:
                 # Create placeholder material.
                 blender_mat = bpy.data.materials.new(name=mat_name)
                 blender_mat.use_nodes = True
-                _log_verbose(f"    Created placeholder material: '{mat_name}'")
+                _log_debug(f"    Created placeholder material: '{mat_name}'")
 
         mesh.materials.append(blender_mat)
         mat_name_to_index[mat_key] = len(mesh.materials) - 1
 
     # Add faces.
-    _log_verbose(f"    Adding {len(model.faces)} faces...")
+    _log_debug(f"    Adding {len(model.faces)} faces...")
     uv_layer = bm.loops.layers.uv.new("UVMap")
     faces_created = 0
     faces_failed = 0
@@ -712,11 +743,11 @@ def _create_mesh_from_model(
             faces_failed += 1
             continue
 
-    _log_verbose(f"    Faces created: {faces_created}, failed: {faces_failed}")
+    _log_debug(f"    Faces created: {faces_created}, failed: {faces_failed}")
 
     # Apply smoothing groups by marking edges as sharp or smooth.
     # An edge is sharp if adjacent faces have different smoothing groups.
-    _log_verbose(f"    Processing smoothing groups...")
+    _log_debug(f"    Processing smoothing groups...")
     bm.edges.ensure_lookup_table()
     sharp_edges = 0
     smooth_edges = 0
@@ -745,15 +776,15 @@ def _create_mesh_from_model(
             edge.smooth = True
             smooth_edges += 1
 
-    _log_verbose(f"    Smoothing: {sharp_edges} sharp edges, {smooth_edges} smooth edges")
+    _log_debug(f"    Smoothing: {sharp_edges} sharp edges, {smooth_edges} smooth edges")
 
-    _log_verbose(f"    Converting bmesh to mesh...")
+    _log_debug(f"    Converting bmesh to mesh...")
     bm.to_mesh(mesh)
     bm.free()
 
     # Apply edge visibility (hidden edges) after bmesh conversion.
     # This must be done on the final mesh, not bmesh.
-    _log_verbose(f"    Processing edge visibility...")
+    _log_debug(f"    Processing edge visibility...")
     hidden_edges = 0
     for face_idx, face in enumerate(model.faces):
         if face_idx >= len(mesh.polygons):
@@ -784,7 +815,7 @@ def _create_mesh_from_model(
                     mesh.edges[edge_idx].hide = True
                     hidden_edges += 1
 
-    _log_verbose(f"    Hidden edges: {hidden_edges}")
+    _log_debug(f"    Hidden edges: {hidden_edges}")
 
     # Enable auto smooth for the mesh to respect sharp edges.
     # Note: use_auto_smooth was deprecated in Blender 4.1+.
@@ -798,11 +829,11 @@ def _create_mesh_from_model(
     # Enable smooth shading on all polygons to show smoothing groups effect.
     for poly in mesh.polygons:
         poly.use_smooth = True
-    _log_verbose(f"    Enabled smooth shading on {len(mesh.polygons)} polygons")
+    _log_debug(f"    Enabled smooth shading on {len(mesh.polygons)} polygons")
 
     # Update mesh.
     mesh.update()
-    _log_verbose(f"    Mesh '{model.name}' created successfully")
+    _log_debug(f"    Mesh '{model.name}' created successfully")
 
     return obj
 

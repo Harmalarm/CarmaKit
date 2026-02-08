@@ -11,7 +11,7 @@ import os
 from typing import Set
 
 import bpy
-from bpy.props import BoolProperty, EnumProperty, FloatProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, StringProperty
 from bpy.types import Context, Operator
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
@@ -39,15 +39,6 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         default="*.act;*.dat",
         options={'HIDDEN'},
         maxlen=255,
-    )  # type: ignore
-
-    # Import options that override preferences.
-    scale: FloatProperty(
-        name="Scale",
-        description="Scale factor for imported model",
-        default=1.0,
-        min=0.001,
-        max=1000.0,
     )  # type: ignore
 
     apply_transform: BoolProperty(
@@ -86,7 +77,7 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         # Build import options from operator properties.
         options = importer.ImportOptions(
             filepath=self.filepath,
-            scale=self.scale,
+            scale=1.0,
             apply_transform=self.apply_transform,
             import_materials=self.import_materials,
             import_textures=self.import_textures,
@@ -123,7 +114,6 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
 
         box = layout.box()
         box.label(text="Transform", icon='ORIENTATION_GLOBAL')
-        box.prop(self, "scale")
         box.prop(self, "apply_transform")
 
         box = layout.box()
@@ -158,15 +148,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         default="*.act",
         options={'HIDDEN'},
         maxlen=255,
-    )  # type: ignore
-
-    # Export options.
-    scale: FloatProperty(
-        name="Scale",
-        description="Scale factor for exported model",
-        default=1.0,
-        min=0.001,
-        max=1000.0,
     )  # type: ignore
 
     selected_only: BoolProperty(
@@ -214,6 +195,43 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         default='CAR',
     )  # type: ignore
 
+    game_version: EnumProperty(
+        name="Game Version",
+        description="Target Carmageddon game version for export",
+        items=[
+            ('C1', "Carmageddon 1", "Original Carmageddon"),
+            (
+                'C2',
+                "Carmageddon 2",
+                "Carmageddon 2: Carpocalypse Now"
+            ),
+        ],
+        default='C2',
+    )  # type: ignore
+
+    def invoke(
+        self,
+        context: Context,
+        event: bpy.types.Event
+    ) -> Set[str]:
+        """
+        Initialize export options before showing the file dialog.
+
+        :param context: The Blender context.
+        :type context: Context
+        :param event: The Blender event.
+        :type event: bpy.types.Event
+        :return: Operator result.
+        :rtype: Set[str]
+        """
+        try:
+            prefs = bpy.context.preferences.addons[__package__].preferences
+            self.game_version = prefs.game_version
+        except (KeyError, AttributeError):
+            pass
+
+        return super().invoke(context, event)
+
     def execute(self, context: Context) -> Set[str]:
         """
         Execute the export operation.
@@ -226,13 +244,14 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         # Build export options from operator properties.
         options = exporter.ExportOptions(
             filepath=self.filepath,
-            scale=self.scale,
+            scale=1.0,
             selected_only=self.selected_only,
             apply_modifiers=self.apply_modifiers,
             triangulate=self.triangulate,
             generate_sdf=self.generate_sdf,
             export_format=self.export_format,
             export_kind=self.export_kind,
+            game_version=self.game_version,
         )
 
         try:
@@ -268,10 +287,10 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         box.prop(self, "export_format")
         box.prop(self, "generate_sdf")
         box.prop(self, "export_kind")
+        box.prop(self, "game_version")
 
         box = layout.box()
         box.label(text="Transform", icon='ORIENTATION_GLOBAL')
-        box.prop(self, "scale")
 
         box = layout.box()
         box.label(text="Objects", icon='OBJECT_DATA')

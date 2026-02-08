@@ -13,7 +13,6 @@ import bpy
 from bpy.props import (
     BoolProperty,
     EnumProperty,
-    FloatProperty,
     IntProperty,
     StringProperty,
 )
@@ -54,19 +53,17 @@ class CarmaKitPreferences(AddonPreferences):
         subtype='DIR_PATH',
     )  # type: ignore
 
+    use_bru_scale: BoolProperty(
+        name="Use BRU Unit Conversion",
+        description=(
+            "Apply BRU conversion using the addon scale factor"
+        ),
+        default=True,
+    )  # type: ignore
+
     # =========================================================================
     # Import Preferences
     # =========================================================================
-
-    import_scale: FloatProperty(
-        name="Import Scale",
-        description="Scale factor applied when importing models",
-        default=1.0,
-        min=0.001,
-        max=1000.0,
-        soft_min=0.01,
-        soft_max=100.0,
-    )  # type: ignore
 
     import_apply_transform: BoolProperty(
         name="Apply Transform",
@@ -98,16 +95,6 @@ class CarmaKitPreferences(AddonPreferences):
     # =========================================================================
     # Export Preferences
     # =========================================================================
-
-    export_scale: FloatProperty(
-        name="Export Scale",
-        description="Scale factor applied when exporting models",
-        default=1.0,
-        min=0.001,
-        max=1000.0,
-        soft_min=0.01,
-        soft_max=100.0,
-    )  # type: ignore
 
     export_apply_modifiers: BoolProperty(
         name="Apply Modifiers",
@@ -141,13 +128,10 @@ class CarmaKitPreferences(AddonPreferences):
 
     debug_logging: BoolProperty(
         name="Debug Logging",
-        description="Enable verbose debug output to console",
-        default=False,
-    )  # type: ignore
-
-    verbose_import_logging: BoolProperty(
-        name="Verbose Import Logging",
-        description="Enable detailed step-by-step logging during import operations",
+        description=(
+            "Enable detailed step-by-step logging during import and "
+            "export operations"
+        ),
         default=False,
     )  # type: ignore
 
@@ -177,14 +161,13 @@ class CarmaKitPreferences(AddonPreferences):
         box.label(text="General Settings", icon='PREFERENCES')
         box.prop(self, "game_version")
         box.prop(self, "game_folder")
+        box.prop(self, "use_bru_scale")
         box.prop(self, "debug_logging")
-        box.prop(self, "verbose_import_logging")
 
         # Import settings.
         box = layout.box()
         box.label(text="Import Settings", icon='IMPORT')
         row = box.row()
-        row.prop(self, "import_scale")
         row.prop(self, "import_apply_transform")
         row = box.row()
         row.prop(self, "import_materials")
@@ -195,7 +178,6 @@ class CarmaKitPreferences(AddonPreferences):
         box = layout.box()
         box.label(text="Export Settings", icon='EXPORT')
         row = box.row()
-        row.prop(self, "export_scale")
         row.prop(self, "export_apply_modifiers")
         row = box.row()
         row.prop(self, "export_selected_only")

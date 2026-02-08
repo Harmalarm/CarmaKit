@@ -241,6 +241,31 @@ class TestMatWriter:
         read_material = read_mat.materials[0]
         assert read_material.name == mat.name
 
+    def test_write_c1_mat_suffixes(self, tmp_path: Path) -> None:
+        """
+        Test that C1 exports append MAT and PIX suffixes.
+
+        :param tmp_path: Temporary directory fixture.
+        :type tmp_path: Path
+        """
+        mat = Material()
+        mat.name = "C1Material"
+        mat.texture_name = "C1Texture"
+
+        mat_file = MatFile()
+        mat_file.materials.append(mat)
+
+        output_path = tmp_path / "c1.mat"
+        write_mat_file(str(output_path), mat_file, game_version="C1")
+
+        read_mat = parse_mat_file(str(output_path))
+
+        assert len(read_mat.materials) == 1
+        read_material = read_mat.materials[0]
+        assert read_material.name.endswith(".MAT")
+        assert read_material.texture_name is not None
+        assert read_material.texture_name.endswith(".PIX")
+
 
 class TestSdfWriter:
     """Tests for SDF file writing."""

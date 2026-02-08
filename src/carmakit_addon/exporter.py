@@ -39,7 +39,25 @@ from .writers.act_writer import write_act_file
 from .writers.dat_writer import write_dat_file
 from .writers.mat_writer import write_mat_file
 from .writers.sdf_writer import write_sdf_file
-from .constants import DEFAULT_FACE_FLAGS, MAT_FLAG_DEFAULT
+from .constants import BRU_SCALE_FACTOR, DEFAULT_FACE_FLAGS, MAT_FLAG_DEFAULT
+
+
+def _log_debug(message: str) -> None:
+    """
+    Log a debug message when debug logging is enabled.
+
+    :param message: The message to log.
+    :type message: str
+    :return: None.
+    :rtype: None
+    """
+    try:
+        prefs = bpy.context.preferences.addons[__package__].preferences
+        if prefs.debug_logging:
+            print(f"[CarmaKit Export] {message}")
+    except (KeyError, AttributeError):
+        # Addon preferences not available, skip logging.
+        pass
 
 
 @dataclass
@@ -61,6 +79,8 @@ class ExportOptions:
     :type generate_sdf: bool
     :param export_format: Which files to export.
     :type export_format: str
+    :param game_version: Target Carmageddon game version.
+    :type game_version: str
     """
 
     filepath: str
@@ -71,6 +91,7 @@ class ExportOptions:
     generate_sdf: bool = True
     export_format: str = 'ALL'
     export_kind: str = 'CAR'
+    game_version: str = 'C2'
 
 
 @dataclass
@@ -106,6 +127,19 @@ def export_carmageddon_model(
     :rtype: ExportResult
     """
     result = ExportResult()
+    _apply_bru_export_scale(options)
+    _log_debug(f"Starting export to: {options.filepath}")
+    options_summary = ", ".join([
+        f"scale={options.scale}",
+        f"selected_only={options.selected_only}",
+        f"apply_modifiers={options.apply_modifiers}",
+        f"triangulate={options.triangulate}",
+        f"generate_sdf={options.generate_sdf}",
+        f"export_format={options.export_format}",
+        f"export_kind={options.export_kind}",
+        f"game_version={options.game_version}",
+    ])
+    _log_debug(f"Options: {options_summary}")
 
     try:
         # Get base path and name.
@@ -128,6 +162,10 @@ def export_carmageddon_model(
             result.error_message = "No mesh objects to export"
             result.success = False
             return result
+
+        _log_debug(
+            f"Objects: {len(act_objects)} total, {len(mesh_objects)} meshes"
+        )
 
         # Collect all materials.
         all_materials: Dict[str, bpy.types.Material] = {}
@@ -155,30 +193,64 @@ def export_carmageddon_model(
                 legacy_hierarchy=(options.export_kind == 'CAR')
             )
             result.files_written += 1
+            _log_debug(f"Wrote ACT: {act_path}")
 
         if options.export_format in ['ALL', 'ACT_DAT', 'DAT_ONLY']:
             # Write DAT file.
             dat_path = os.path.join(base_path, base_name + '.dat')
             write_dat_file(dat_path, dat_file)
             result.files_written += 1
+            _log_debug(f"Wrote DAT: {dat_path}")
 
         if options.export_format == 'ALL':
             # Write MAT file.
             mat_path = os.path.join(base_path, base_name + '.mat')
-            write_mat_file(mat_path, mat_file)
+            write_mat_file(
+                mat_path,
+                mat_file,
+                game_version=options.game_version
+            )
             result.files_written += 1
+            _log_debug(f"Wrote MAT: {mat_path}")
 
         # Write SDF file if requested.
         if options.generate_sdf:
             sdf_path = os.path.join(base_path, base_name + '.sdf')
             write_sdf_file(sdf_path)
             result.files_written += 1
+            _log_debug(f"Wrote SDF: {sdf_path}")
 
     except Exception as e:
         result.error_message = str(e)
         result.success = False
+        _log_debug(f"Export failed with exception: {e}")
+
+    _log_debug(
+        f"Export complete: success={result.success}, "
+        f"files_written={result.files_written}"
+    )
+    if not result.success:
+        _log_debug(f"  Error message: {result.error_message}")
 
     return result
+
+
+def _apply_bru_export_scale(options: ExportOptions) -> None:
+    """
+    Apply BRU unit conversion to the export scale when enabled.
+
+    :param options: Export options to update.
+    :type options: ExportOptions
+    :return: None.
+    :rtype: None
+    """
+    try:
+        prefs = bpy.context.preferences.addons[__package__].preferences
+        if prefs.use_bru_scale:
+            options.scale /= BRU_SCALE_FACTOR
+    except (KeyError, AttributeError):
+        # Addon preferences not available, skip scaling.
+        pass
 
 
 def _create_dat_file(
@@ -200,10 +272,15 @@ def _create_dat_file(
     """
     dat_file = DatFile()
 
+    _log_debug(f"Creating DAT from {len(objects)} objects")
+
     for obj in objects:
+        _log_debug(f"  Converting object: {obj.name} ({obj.type})")
         model = _create_model_from_object(context, obj, options)
         if model:
             dat_file.models.append(model)
+
+    _log_debug(f"DAT models created: {len(dat_file.models)}")
 
     return dat_file
 
@@ -234,11 +311,17 @@ def _create_model_from_object(
         mesh = obj.data
 
     if not mesh:
+        _log_debug(f"  Skipping object with no mesh: {obj.name}")
         return None
 
     model = DatModel()
     # Use mesh data name for DAT model name to match Blender mesh naming.
     model.name = obj.data.name
+
+    _log_debug(
+        f"  Building DAT model '{model.name}', apply_modifiers="
+        f"{options.apply_modifiers}, triangulate={options.triangulate}"
+    )
 
     # Create bmesh for processing.
     bm = bmesh.new()
@@ -251,6 +334,10 @@ def _create_model_from_object(
     bm.verts.ensure_lookup_table()
     bm.faces.ensure_lookup_table()
     bm.edges.ensure_lookup_table()
+
+    _log_debug(
+        f"  Mesh stats: verts={len(bm.verts)}, faces={len(bm.faces)}"
+    )
 
     smoothing_groups = _compute_smoothing_groups(bm)
 
@@ -302,6 +389,10 @@ def _create_model_from_object(
         else:
             model.tex_coords.append(Vector2(0.0, 0.0))
 
+    missing_uvs = len(bm.verts) - len(vert_uvs)
+    if missing_uvs:
+        _log_debug(f"  Missing UVs for {missing_uvs} vertices")
+
     # Export faces.
     for face in bm.faces:
         if len(face.loops) != 3:
@@ -332,6 +423,11 @@ def _create_model_from_object(
             flags=flags,
             material_index=mat_index
         ))
+
+    _log_debug(
+        f"  Exported faces: {len(model.faces)}, materials: "
+        f"{len(model.materials)}"
+    )
 
     bm.free()
 
@@ -403,6 +499,8 @@ def _create_mat_file(
     """
     mat_file = MatFile()
 
+    _log_debug(f"Creating MAT from {len(materials)} materials")
+
     for name, blender_mat in materials.items():
         car_mat = CarMaterial()
         car_mat.name = name
@@ -437,6 +535,12 @@ def _create_mat_file(
                     break
 
         mat_file.materials.append(car_mat)
+        _log_debug(
+            f"  Material '{car_mat.name}': texture="
+            f"{car_mat.texture_name or 'none'}, flags=0x{car_mat.flags:08X}"
+        )
+
+    _log_debug(f"MAT materials created: {len(mat_file.materials)}")
 
     return mat_file
 
@@ -461,6 +565,10 @@ def _create_act_file(
     act_file = ActFile()
 
     include_bounding_boxes = options.export_kind == 'TRACK'
+    _log_debug(
+        f"Creating ACT for export_kind={options.export_kind}, "
+        f"include_bounding_boxes={include_bounding_boxes}"
+    )
 
     # Build actor nodes and preserve Blender parenting where possible.
     node_map: Dict[bpy.types.Object, ActorNode] = {}
@@ -477,6 +585,8 @@ def _create_act_file(
             node_map[obj.parent].children.append(node)
         else:
             root_candidates.append(node)
+
+    _log_debug(f"ACT root candidates: {len(root_candidates)}")
 
     if not root_candidates:
         return act_file
@@ -507,6 +617,10 @@ def _create_act_file(
                 Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
                 Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
             )
+            _log_debug(
+                f"Track bounding box: min={root.bounding_box.min}, "
+                f"max={root.bounding_box.max}"
+            )
 
         root.children.extend(sorted(root_candidates, key=lambda n: n.name))
         act_file.root = root
@@ -517,6 +631,9 @@ def _create_act_file(
         for extra in root_candidates[1:]:
             root.children.append(extra)
         act_file.root = root
+        _log_debug(
+            f"Car root: {root.name}, extra_roots={len(root_candidates) - 1}"
+        )
 
     return act_file
 
@@ -543,6 +660,11 @@ def _create_actor_node_from_object(
     node.attributes = 0x0104
     if obj.type == 'MESH' and obj.data:
         node.model_name = _format_model_name(obj.data.name)
+
+    _log_debug(
+        f"  Actor node: {node.name}, type={obj.type}, "
+        f"model_name={node.model_name or 'none'}"
+    )
 
     # Extract transform.
     matrix = obj.matrix_world
@@ -576,6 +698,11 @@ def _create_actor_node_from_object(
         node.bounding_box = BoundingBox(
             Vector3(min_co.x * scale, min_co.z * scale, -max_co.y * scale),
             Vector3(max_co.x * scale, max_co.z * scale, -min_co.y * scale)
+        )
+
+        _log_debug(
+            f"  Bounding box for {node.name}: min={node.bounding_box.min}, "
+            f"max={node.bounding_box.max}"
         )
 
     return node

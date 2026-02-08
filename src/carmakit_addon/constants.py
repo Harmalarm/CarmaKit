@@ -171,3 +171,10 @@ DEFAULT_SPECULAR_POWER: Final[float] = 20.0  # 0x41A00000
 
 # Default face unknown bytes (Plaything uses 0x00, 0x01, 0x00).
 DEFAULT_FACE_FLAGS: Final[bytes] = b'\x00\x01\x00'
+
+# =============================================================================
+# Unit Conversion
+# =============================================================================
+
+# Carmageddon BRU (Brender Units) to meters scale factor.
+BRU_SCALE_FACTOR: Final[float] = 6.9
