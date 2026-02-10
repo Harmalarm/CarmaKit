@@ -7,12 +7,7 @@ in their native big-endian binary format.
 
 from typing import BinaryIO
 
-from ..utils.binary_writer import (
-    write_float32_array,
-    write_null_marker,
-    write_record_header,
-    write_uint16,
-)
+from ..utils.binary_writer import BinaryWriter
 from ..constants import (
     ACT_RECORD_ACTOR_NAME,
     ACT_RECORD_BOUNDING_BOX,
@@ -56,7 +51,7 @@ def write_act_file(
             )
 
         # Write final null marker.
-        write_null_marker(f)
+        BinaryWriter.write_null_marker(f)
 
 
 def _write_act_node(
@@ -82,22 +77,33 @@ def _write_act_node(
     # Write actor name and attributes.
     name_bytes = node.name.encode('ascii') + b'\x00'
     record_length = 2 + len(name_bytes)
-    write_record_header(f, ACT_RECORD_ACTOR_NAME, record_length)
-    write_uint16(f, node.attributes)
+    BinaryWriter.write_record_header(
+        f,
+        ACT_RECORD_ACTOR_NAME,
+        record_length
+    )
+    BinaryWriter.write_uint16(f, node.attributes)
     f.write(name_bytes)
 
     # Write transformation matrix.
-    write_record_header(f, ACT_RECORD_TRANSFORM, 48)
-    write_float32_array(f, list(node.transform.values))
+    BinaryWriter.write_record_header(f, ACT_RECORD_TRANSFORM, 48)
+    BinaryWriter.write_float32_array(
+        f,
+        list(node.transform.values)
+    )
 
     # Write unknown empty record (required by Plaything).
-    write_record_header(f, ACT_RECORD_UNKNOWN, 0)
+    BinaryWriter.write_record_header(f, ACT_RECORD_UNKNOWN, 0)
 
     # Write bounding box if present.
     if node.bounding_box:
-        write_record_header(f, ACT_RECORD_BOUNDING_BOX, 24)
+        BinaryWriter.write_record_header(
+            f,
+            ACT_RECORD_BOUNDING_BOX,
+            24
+        )
         bb = node.bounding_box
-        write_float32_array(f, [
+        BinaryWriter.write_float32_array(f, [
             bb.min_point.x, bb.min_point.y, bb.min_point.z,
             bb.max_point.x, bb.max_point.y, bb.max_point.z,
         ])
@@ -105,7 +111,11 @@ def _write_act_node(
     # Write model name if present.
     if node.model_name:
         name_bytes = node.model_name.encode('ascii') + b'\x00'
-        write_record_header(f, ACT_RECORD_MODEL_NAME, len(name_bytes))
+        BinaryWriter.write_record_header(
+            f,
+            ACT_RECORD_MODEL_NAME,
+            len(name_bytes)
+        )
         f.write(name_bytes)
 
     # Write children if present.
@@ -121,9 +131,17 @@ def _write_act_node(
             )
 
         if not is_root:
-            write_record_header(f, ACT_RECORD_HIERARCHY_END, 0)
+            BinaryWriter.write_record_header(
+                f,
+                ACT_RECORD_HIERARCHY_END,
+                0
+            )
     elif node.children:
-        write_record_header(f, ACT_RECORD_HIERARCHY_START, 0)
+        BinaryWriter.write_record_header(
+            f,
+            ACT_RECORD_HIERARCHY_START,
+            0
+        )
 
         # Write child nodes recursively.
         for child in node.children:
@@ -134,4 +152,8 @@ def _write_act_node(
                 is_root=False
             )
 
-        write_record_header(f, ACT_RECORD_HIERARCHY_END, 0)
+        BinaryWriter.write_record_header(
+            f,
+            ACT_RECORD_HIERARCHY_END,
+            0
+        )

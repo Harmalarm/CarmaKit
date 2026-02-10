@@ -11,152 +11,119 @@ Animation		// Animation settings
 "NEXT GROOVE" after each one, on a line of it's own, or
 "END OF GROOVE" after the very last one.
 
-Details
+Details:
 
 ActorName
-The ActorName is simply the name of the model you wish to animate.
+	The ActorName is simply the name of the model you wish to animate.
 
 Lollipop
-While not used in either Carmageddon 1 or 2 the lollipop code still works! Acceptable values are
+	While not used in either Carmageddon 1 or 2 the lollipop code still works! Acceptable values are
+		xLollipop
+		yLollipop
+		zLollipop
+		not a lollipop
 
-xLollipop
-yLollipop
-zLollipop
-not a lollipop
-
-Anything else will be treated as
-
-not a lollipop
-
-. Lollipops can be used for "always face the camera" sprites such as the peds in Carmageddon 1. Toshiba-3 has an excellent article in the subject (here)
+	Anything else will be treated as
+		not a lollipop
+	. Lollipops can be used for "always face the camera" sprites such as the peds in Carmageddon 1. Toshiba-3 has an excellent article in the subject (here)
 
 Trigger
-The trigger dictates when the effect should occur. Acceptable values for GROOVEs are
+	The trigger dictates when the effect should occur. Acceptable values for GROOVEs are
+		constant
+		distance
 
-constant
-distance
+	GROOVEs on cars are usually
+		constant
 
-GROOVEs on cars are usually
-
-constant
-
-, maps are usually
-
-distance
-
-
+	, maps are usually
+		distance
 
 Path
-Path based animation will move the Actor. Acceptable values are
+	Path based animation will move the Actor. Acceptable values are
+		straight
+		circular
+		no path
+	Anything else will be treated as
+		no path
+	Each path has different settings.
 
-straight
-circular
-no path
+		straight
+			PathMovement
+				absolute
+				harmonic
+				linear
+				flash
+			Centre
+			if absolute
+				GroovyFunkRef
+			else
+				CyclesPerSecond
+			Distance
 
-Anything else will be treated as
-
-no path
-
-. Each path has different settings.
-
-if
-
-straight
-
-	PathMovement
-		absolute
-		harmonic
-		linear
-		flash
-	Centre
-	if absolute
-		GroovyFunkRef
-	else
-		CyclesPerSecond
-	Distance
-
-if
-
-circular
-
-	PathMovement
-		absolute
-		linear
-	CentreOfCircle
-	if absolute
-		GroovyFunkRef
-	else
-		Speed
-	Radius
-	Axis
-		x
-		y
-		z
+		circular
+			PathMovement
+				absolute
+				linear
+			CentreOfCircle
+			if absolute
+				GroovyFunkRef
+			else
+				Speed
+			Radius
+			Axis
+				x
+				y
+				z
 
 Animation
-Animation will distort/deform the Actor. Acceptable values are
+	Animation will distort/deform the Actor. Acceptable values are
+		rock
+		shear
+		spin
+		throb
+		no animation
 
-rock
-shear
-spin
-throb
-no animation
+	Anything else will be treated as
+		no animation
+	Each animation has different settings.
 
-Anything else will be treated as
+		spin
+			SpinType
+				controlled
+				continuous
+			if controlled
+				GroovyFunkRef
+			else
+				CyclesPerSecond
+			Centre
+			Axis
+				x
+				z
 
-no animation
+		rock
+			RockType
+				absolute
+				harmonic
+				linear
+			if absolute
+				GroovyFunkRef
+			else
+				CyclesPerSecond
+			Centre
+			Axis
+				x
+				y
+				z
+			Degrees
 
-. Each animation has different settings.
+		shear
+			ShearType
+				absolute
+				controlled
+			if absolute or controlled
+				GroovyFunkRef in the form of a vector3 (0,GFR,0)
+			Centre
+			Extents
 
-If
-
-spin
-
-	SpinType
-		controlled
-		continuous
-	if controlled
-		GroovyFunkRef
-	else
-		CyclesPerSecond
-	Centre
-	Axis
-		x
-		z
-
-if
-
-rock
-
-	RockType
-		absolute
-		harmonic
-		linear
-	if absolute
-		GroovyFunkRef
-	else
-		CyclesPerSecond
-	Centre
-	Axis
-		x
-		y
-		z
-	Degrees
-
-if
-
-shear
-
-	ShearType
-		absolute
-		controlled
-	if absolute or controlled
-		GroovyFunkRef in the form of a vector3 (0,GFR,0)
-	Centre
-	Extents
-
-if
-
-throb
-
-I LIKE TURTLES
+		throb
+			I LIKE TURTLES

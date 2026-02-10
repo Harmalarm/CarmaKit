@@ -29,6 +29,10 @@ from .classes.mat_classes import (
 )
 from .parsers.act_parser import parse_act_file
 from .parsers.dat_parser import parse_dat_file
+from .parsers.groove_parser import (
+    normalize_actor_name,
+    parse_groove_sections,
+)
 from .parsers.mat_parser import parse_mat_file
 from .parsers.utils import ParseError, find_related_files
 from .utils.general_utils import cleanup_scene
@@ -83,6 +87,89 @@ def _find_model_in_dict(
 
     _log_debug(f"    Model key '{key}' not found")
     return None
+
+
+def _find_groove_txt_path(base_path: str, base_name: str) -> Optional[str]:
+    """
+    Locate a groove text file matching the base name.
+
+    :param base_path: Directory containing the model files.
+    :type base_path: str
+    :param base_name: Base name for the model files.
+    :type base_name: str
+    :return: Path to the groove text file when found.
+    :rtype: Optional[str]
+    """
+    for ext in [".txt", ".TXT"]:
+        candidate = os.path.join(base_path, base_name + ext)
+        if os.path.exists(candidate):
+            return candidate
+
+    return None
+
+
+def _load_groove_map(
+    filepath: str,
+    act_path: Optional[str],
+    dat_path: Optional[str]
+) -> Dict[str, List["GrooveDefinition"]]:
+    """
+    Load groove definitions and map them by actor name.
+
+    :param filepath: Original import filepath.
+    :type filepath: str
+    :param act_path: Related ACT file path.
+    :type act_path: Optional[str]
+    :param dat_path: Related DAT file path.
+    :type dat_path: Optional[str]
+    :return: Mapping of normalized actor names to groove definitions.
+    :rtype: Dict[str, List[GrooveDefinition]]
+    """
+    reference_path = act_path or dat_path or filepath
+    base_path = os.path.dirname(reference_path)
+    base_name = os.path.splitext(os.path.basename(reference_path))[0]
+    txt_path = _find_groove_txt_path(base_path, base_name)
+    if not txt_path:
+        return {}
+
+    try:
+        result = parse_groove_sections(txt_path)
+    except Exception as exc:
+        _log_debug(f"Failed to parse groove file: {exc}")
+        return {}
+
+    _log_debug(
+        f"Parsed {len(result.grooves)} grooves from {txt_path}"
+    )
+    return result.by_actor_name()
+
+
+def _apply_grooves_to_object(
+    obj: bpy.types.Object,
+    groove_map: Dict[str, List["GrooveDefinition"]]
+) -> None:
+    """
+    Apply groove definitions to a Blender object as custom properties.
+
+    :param obj: Blender object to update.
+    :type obj: bpy.types.Object
+    :param groove_map: Groove definitions mapped by actor name.
+    :type groove_map: Dict[str, List[GrooveDefinition]]
+    :return: None.
+    :rtype: None
+    """
+    key = normalize_actor_name(obj.name)
+    grooves = groove_map.get(key)
+    if not grooves:
+        return
+
+    obj["carmakit_grooves"] = {
+        str(groove.index): groove.to_custom_property()
+        for groove in grooves
+    }
+    _log_debug(
+        f"Attached {len(grooves)} grooves to object '{obj.name}'"
+    )
 
 
 @dataclass
@@ -220,6 +307,8 @@ def import_carmageddon_model(
                 result.success = False
                 return result
 
+        groove_map = _load_groove_map(options.filepath, act_path, dat_path)
+
         # Load ACT hierarchy or create simple scene from DAT.
         if act_path:
             _log_debug(f"Loading ACT hierarchy from: {act_path}")
@@ -234,7 +323,8 @@ def import_carmageddon_model(
                         models,
                         materials,
                         options,
-                        None
+                        None,
+                        groove_map
                     )
                     result.objects_created = len(objects)
                     _log_debug(f"  Created {len(objects)} objects from ACT hierarchy")
@@ -248,9 +338,11 @@ def import_carmageddon_model(
             _log_debug(f"No ACT file, importing {len(models)} models directly from DAT")
             for model in models.values():
                 _log_debug(f"  Creating mesh for model: {model.name}")
-                _create_mesh_from_model(
+                obj = _create_mesh_from_model(
                     context, model, materials, options, None
                 )
+                if obj:
+                    _apply_grooves_to_object(obj, groove_map)
                 result.objects_created += 1
                 _log_debug(f"    Done creating mesh for {model.name}")
 
@@ -526,7 +618,8 @@ def _create_hierarchy_from_act(
     models: Dict[str, DatModel],
     materials: Dict[str, bpy.types.Material],
     options: ImportOptions,
-    parent: Optional[bpy.types.Object]
+    parent: Optional[bpy.types.Object],
+    groove_map: Dict[str, List["GrooveDefinition"]]
 ) -> List[bpy.types.Object]:
     """
     Create Blender objects from an ACT hierarchy.
@@ -543,6 +636,8 @@ def _create_hierarchy_from_act(
     :type options: ImportOptions
     :param parent: Parent Blender object.
     :type parent: Optional[bpy.types.Object]
+    :param groove_map: Groove definitions mapped by actor name.
+    :type groove_map: Dict[str, List[GrooveDefinition]]
     :return: List of created Blender objects.
     :rtype: List[bpy.types.Object]
     """
@@ -574,6 +669,7 @@ def _create_hierarchy_from_act(
                 if options.apply_transform:
                     _log_debug(f"    Applying transform to '{obj.name}'")
                     _apply_transform(obj, node, options.scale)
+                _apply_grooves_to_object(obj, groove_map)
                 created_objects.append(obj)
                 parent = obj
             else:
@@ -585,6 +681,7 @@ def _create_hierarchy_from_act(
             obj = _create_empty(context, node.name, parent)
             if options.apply_transform:
                 _apply_transform(obj, node, options.scale)
+            _apply_grooves_to_object(obj, groove_map)
             created_objects.append(obj)
             parent = obj
     else:
@@ -593,6 +690,7 @@ def _create_hierarchy_from_act(
         obj = _create_empty(context, node.name, parent)
         if options.apply_transform:
             _apply_transform(obj, node, options.scale)
+        _apply_grooves_to_object(obj, groove_map)
         created_objects.append(obj)
         parent = obj
 
@@ -601,7 +699,7 @@ def _create_hierarchy_from_act(
         _log_debug(f"  Processing {len(node.children)} children of '{node.name}'")
     for child in node.children:
         child_objects = _create_hierarchy_from_act(
-            context, child, models, materials, options, parent
+            context, child, models, materials, options, parent, groove_map
         )
         created_objects.extend(child_objects)
 

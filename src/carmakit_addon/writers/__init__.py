@@ -9,10 +9,12 @@ from .act_writer import write_act_file
 from .dat_writer import write_dat_file
 from .mat_writer import write_mat_file
 from .sdf_writer import write_sdf_file
+from .txt_writer_car import write_car_txt
 
 __all__ = [
     'write_act_file',
     'write_dat_file',
     'write_mat_file',
     'write_sdf_file',
+    'write_car_txt',
 ]

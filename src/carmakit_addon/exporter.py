@@ -39,6 +39,7 @@ from .writers.act_writer import write_act_file
 from .writers.dat_writer import write_dat_file
 from .writers.mat_writer import write_mat_file
 from .writers.sdf_writer import write_sdf_file
+from .writers.txt_writer_car import write_car_txt
 from .constants import BRU_SCALE_FACTOR, DEFAULT_FACE_FLAGS, MAT_FLAG_DEFAULT
 
 
@@ -219,6 +220,13 @@ def export_carmageddon_model(
             write_sdf_file(sdf_path)
             result.files_written += 1
             _log_debug(f"Wrote SDF: {sdf_path}")
+
+        # Write car text file when exporting a car.
+        if options.export_kind == 'CAR':
+            txt_path = os.path.join(base_path, base_name + '.txt')
+            write_car_txt(txt_path, act_objects)
+            result.files_written += 1
+            _log_debug(f"Wrote TXT: {txt_path}")
 
     except Exception as e:
         result.error_message = str(e)

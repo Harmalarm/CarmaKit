@@ -7,13 +7,7 @@ in their native big-endian binary format.
 
 from typing import BinaryIO
 
-from ..utils.binary_writer import (
-    write_float32,
-    write_float32_array,
-    write_null_marker,
-    write_record_header,
-    write_uint32,
-)
+from ..utils.binary_writer import BinaryWriter
 from ..constants import (
     FILE_TYPE_MAT,
     MAT_RECORD_IMAGE_NAME,
@@ -71,22 +65,29 @@ def _write_mat_material(
     # 13 (padding) + name
     record_length = 4 + 16 + 4 + 24 + 4 + 13 + len(name_bytes)
 
-    write_record_header(f, MAT_RECORD_MATERIAL, record_length)
+    BinaryWriter.write_record_header(
+        f,
+        MAT_RECORD_MATERIAL,
+        record_length
+    )
 
     # Write color.
     f.write(bytes(material.color))
 
     # Write lighting values.
-    write_float32(f, material.ambient)
-    write_float32(f, material.directional)
-    write_float32(f, material.specular)
-    write_float32(f, material.specular_power)
+    BinaryWriter.write_float32(f, material.ambient)
+    BinaryWriter.write_float32(f, material.directional)
+    BinaryWriter.write_float32(f, material.specular)
+    BinaryWriter.write_float32(f, material.specular_power)
 
     # Write flags.
-    write_uint32(f, material.flags)
+    BinaryWriter.write_uint32(f, material.flags)
 
     # Write UV transformation matrix.
-    write_float32_array(f, list(material.uv_transform))
+    BinaryWriter.write_float32_array(
+        f,
+        list(material.uv_transform)
+    )
 
     # Write unknown bytes (Plaything uses 0x0A1F0000).
     f.write(b'\x0A\x1F\x00\x00')
@@ -104,11 +105,15 @@ def _write_mat_material(
             game_version
         )
         tex_bytes = texture_name.encode('ascii') + b'\x00'
-        write_record_header(f, MAT_RECORD_IMAGE_NAME, len(tex_bytes))
+        BinaryWriter.write_record_header(
+            f,
+            MAT_RECORD_IMAGE_NAME,
+            len(tex_bytes)
+        )
         f.write(tex_bytes)
 
     # Write null marker to end material.
-    write_null_marker(f)
+    BinaryWriter.write_null_marker(f)
 
 
 def _format_mat_name(name: str, game_version: str) -> str:

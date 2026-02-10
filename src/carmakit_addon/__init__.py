@@ -27,7 +27,7 @@ from typing import List, Tuple, Set
 import bpy
 
 from . import operators
-from . import panels
+from . import ui
 from . import preferences
 
 
@@ -35,10 +35,17 @@ from . import preferences
 _classes: List[type] = [
     preferences.CarmaKitPreferences,
     operators.CARMAKIT_OT_import_model,
+    operators.CARMAKIT_OT_apply_grooves,
     operators.CARMAKIT_OT_export_model,
-    panels.CARMAKIT_OT_open_preferences,
-    panels.CARMAKIT_PT_main_panel,
-    panels.CARMAKIT_PT_tools_panel,
+    ui.GrooveItem,
+    ui.CARMAKIT_UL_groove_list,
+    ui.CARMAKIT_OT_add_groove_item,
+    ui.CARMAKIT_OT_remove_groove_item,
+    ui.CARMAKIT_OT_open_preferences,
+    ui.CARMAKIT_PT_main_panel,
+    ui.CARMAKIT_PT_tools_panel,
+    ui.CARMAKIT_PT_tool_vertex_index,
+    ui.CARMAKIT_PT_tool_groove_setup,
 ]
 
 
@@ -84,6 +91,9 @@ def register() -> None:
     for cls in _classes:
         bpy.utils.register_class(cls)
 
+    ui.register_properties()
+    ui.register_handlers()
+
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
@@ -99,6 +109,9 @@ def unregister() -> None:
     """
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+
+    ui.unregister_handlers()
+    ui.unregister_properties()
 
     for cls in reversed(_classes):
         bpy.utils.unregister_class(cls)

@@ -6,7 +6,7 @@ This module contains shared helpers used by all file writers.
 
 from typing import BinaryIO
 
-from ..utils.binary_writer import write_record_header, write_uint32
+from ..utils.binary_writer import BinaryWriter
 from ..constants import FILE_HEADER_TYPE, FILE_VERSION
 
 
@@ -21,6 +21,6 @@ def write_file_header(f: BinaryIO, file_type: int) -> None:
     :return: None.
     :rtype: None
     """
-    write_record_header(f, FILE_HEADER_TYPE, 8)
-    write_uint32(f, file_type)
-    write_uint32(f, FILE_VERSION)
+    BinaryWriter.write_record_header(f, FILE_HEADER_TYPE, 8)
+    BinaryWriter.write_uint32(f, file_type)
+    BinaryWriter.write_uint32(f, FILE_VERSION)
