@@ -7,12 +7,7 @@ in their native big-endian binary format.
 
 from typing import List, Optional
 
-from ..utils.binary_reader import (
-    read_float32_array,
-    read_null_terminated_string,
-    read_record_header,
-    read_uint16,
-)
+from ..utils.binary_reader import BinaryReader
 from ..constants import (
     ACT_RECORD_ACTOR_NAME,
     ACT_RECORD_BOUNDING_BOX,
@@ -69,7 +64,7 @@ def parse_act_file(filepath: str) -> ActFile:
 
         while True:
             try:
-                record_type, length = read_record_header(f)
+                record_type, length = BinaryReader.read_record_header(f)
             except Exception:
                 # End of file.
                 break
@@ -81,8 +76,8 @@ def parse_act_file(filepath: str) -> ActFile:
             if record_type == ACT_RECORD_ACTOR_NAME:
                 # New actor starting.
                 current_node = ActorNode()
-                current_node.attributes = read_uint16(f)
-                current_node.name = read_null_terminated_string(f)
+                current_node.attributes = BinaryReader.read_uint16(f)
+                current_node.name = BinaryReader.read_null_terminated_string(f)
                 # Store parent index for this node.
                 parent_indices.append(parent_index)
                 all_nodes.append(current_node)
@@ -91,7 +86,7 @@ def parse_act_file(filepath: str) -> ActFile:
 
             elif record_type == ACT_RECORD_TRANSFORM:
                 if current_node:
-                    values = read_float32_array(f, 12)
+                    values = BinaryReader.read_float32_array(f, 12)
                     current_node.transform = TransformMatrix(tuple(values))
 
             elif record_type == ACT_RECORD_UNKNOWN:
@@ -101,7 +96,7 @@ def parse_act_file(filepath: str) -> ActFile:
 
             elif record_type == ACT_RECORD_BOUNDING_BOX:
                 if current_node:
-                    values = read_float32_array(f, 6)
+                    values = BinaryReader.read_float32_array(f, 6)
                     current_node.bounding_box = BoundingBox(
                         Vector3(values[0], values[1], values[2]),
                         Vector3(values[3], values[4], values[5])
@@ -134,7 +129,9 @@ def parse_act_file(filepath: str) -> ActFile:
 
             elif record_type == ACT_RECORD_MODEL_NAME:
                 if current_node:
-                    current_node.model_name = read_null_terminated_string(f)
+                    current_node.model_name = (
+                        BinaryReader.read_null_terminated_string(f)
+                    )
 
             else:
                 # Skip unknown record types.

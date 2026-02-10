@@ -6,10 +6,7 @@ This module contains shared utilities used by all file parsers.
 import os
 from typing import BinaryIO, Tuple, Optional
 
-from ..utils.binary_reader import (
-    read_record_header,
-    read_uint32,
-)
+from ..utils.binary_reader import BinaryReader
 from ..constants import FILE_HEADER_TYPE
 
 
@@ -28,7 +25,7 @@ def read_file_header(f: BinaryIO) -> Tuple[int, int]:
     :rtype: Tuple[int, int]
     :raises ParseError: If header is invalid.
     """
-    record_type, length = read_record_header(f)
+    record_type, length = BinaryReader.read_record_header(f)
     if record_type != FILE_HEADER_TYPE:
         raise ParseError(
             f"Invalid file header type: {hex(record_type)}"
@@ -36,8 +33,8 @@ def read_file_header(f: BinaryIO) -> Tuple[int, int]:
     if length != 8:
         raise ParseError(f"Invalid header length: {length}")
 
-    file_type = read_uint32(f)
-    version = read_uint32(f)
+    file_type = BinaryReader.read_uint32(f)
+    version = BinaryReader.read_uint32(f)
 
     return (file_type, version)
 

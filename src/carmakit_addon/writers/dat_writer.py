@@ -7,14 +7,7 @@ in their native big-endian binary format.
 
 from typing import BinaryIO, List
 
-from ..utils.binary_writer import (
-    write_float32,
-    write_null_marker,
-    write_null_terminated_string,
-    write_record_header,
-    write_uint16,
-    write_uint32,
-)
+from ..utils.binary_writer import BinaryWriter
 from ..constants import (
     DAT_RECORD_FACES,
     DAT_RECORD_FACE_MATERIALS,
@@ -60,41 +53,57 @@ def _write_dat_model(f: BinaryIO, model: DatModel) -> None:
     # Write model name and attributes.
     name_bytes = model.name.encode('ascii') + b'\x00'
     record_length = 2 + len(name_bytes)
-    write_record_header(f, DAT_RECORD_MODEL_NAME, record_length)
-    write_uint16(f, model.attributes)
+    BinaryWriter.write_record_header(
+        f,
+        DAT_RECORD_MODEL_NAME,
+        record_length
+    )
+    BinaryWriter.write_uint16(f, model.attributes)
     f.write(name_bytes)
 
     # Write vertices.
     if model.vertices:
         vertex_count = len(model.vertices)
         record_length = 4 + (vertex_count * 12)  # 3 floats per vertex.
-        write_record_header(f, DAT_RECORD_VERTICES, record_length)
-        write_uint32(f, vertex_count)
+        BinaryWriter.write_record_header(
+            f,
+            DAT_RECORD_VERTICES,
+            record_length
+        )
+        BinaryWriter.write_uint32(f, vertex_count)
         for vertex in model.vertices:
-            write_float32(f, vertex.x)
-            write_float32(f, vertex.y)
-            write_float32(f, vertex.z)
+            BinaryWriter.write_float32(f, vertex.x)
+            BinaryWriter.write_float32(f, vertex.y)
+            BinaryWriter.write_float32(f, vertex.z)
 
     # Write texture coordinates.
     if model.tex_coords:
         tex_count = len(model.tex_coords)
         record_length = 4 + (tex_count * 8)  # 2 floats per coord.
-        write_record_header(f, DAT_RECORD_TEX_COORDS, record_length)
-        write_uint32(f, tex_count)
+        BinaryWriter.write_record_header(
+            f,
+            DAT_RECORD_TEX_COORDS,
+            record_length
+        )
+        BinaryWriter.write_uint32(f, tex_count)
         for tc in model.tex_coords:
-            write_float32(f, tc.u)
-            write_float32(f, tc.v)
+            BinaryWriter.write_float32(f, tc.u)
+            BinaryWriter.write_float32(f, tc.v)
 
     # Write faces.
     if model.faces:
         face_count = len(model.faces)
         record_length = 4 + (face_count * 9)  # 3 uint16 + 3 bytes per face.
-        write_record_header(f, DAT_RECORD_FACES, record_length)
-        write_uint32(f, face_count)
+        BinaryWriter.write_record_header(
+            f,
+            DAT_RECORD_FACES,
+            record_length
+        )
+        BinaryWriter.write_uint32(f, face_count)
         for face in model.faces:
-            write_uint16(f, face.v1)
-            write_uint16(f, face.v2)
-            write_uint16(f, face.v3)
+            BinaryWriter.write_uint16(f, face.v1)
+            BinaryWriter.write_uint16(f, face.v2)
+            BinaryWriter.write_uint16(f, face.v3)
             f.write(face.flags)
 
     # Write material names.
@@ -105,20 +114,28 @@ def _write_dat_model(f: BinaryIO, model: DatModel) -> None:
             len(name.encode('ascii')) + 1 for name in model.materials
         )
         record_length = 4 + names_length
-        write_record_header(f, DAT_RECORD_MATERIAL_NAMES, record_length)
-        write_uint32(f, mat_count)
+        BinaryWriter.write_record_header(
+            f,
+            DAT_RECORD_MATERIAL_NAMES,
+            record_length
+        )
+        BinaryWriter.write_uint32(f, mat_count)
         for name in model.materials:
-            write_null_terminated_string(f, name)
+            BinaryWriter.write_null_terminated_string(f, name)
 
     # Write face materials.
     if model.faces:
         face_count = len(model.faces)
         record_length = 4 + 4 + (face_count * 2)
-        write_record_header(f, DAT_RECORD_FACE_MATERIALS, record_length)
-        write_uint32(f, face_count)
-        write_uint32(f, 0x00000002)  # Unknown constant.
+        BinaryWriter.write_record_header(
+            f,
+            DAT_RECORD_FACE_MATERIALS,
+            record_length
+        )
+        BinaryWriter.write_uint32(f, face_count)
+        BinaryWriter.write_uint32(f, 0x00000002)  # Unknown constant.
         for face in model.faces:
-            write_uint16(f, face.material_index)
+            BinaryWriter.write_uint16(f, face.material_index)
 
     # Write null marker to end model.
-    write_null_marker(f)
+    BinaryWriter.write_null_marker(f)
