@@ -58,6 +58,8 @@ eagle3_export/
 eagle/
 newcity1/
 oldVersion/
+.vscode/
+.github/
 
 # Translations
 *.mo
