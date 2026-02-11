@@ -540,11 +540,11 @@ def register_properties() -> None:
     """
     bpy.types.Object.carmakit_groove_items = CollectionProperty(
         type=GrooveItem,
-        options={'HIDDEN'},
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
     bpy.types.Object.carmakit_groove_index = IntProperty(
         default=0,
-        options={'HIDDEN'},
+        options={'HIDDEN', 'SKIP_SAVE'},
     )
 
 

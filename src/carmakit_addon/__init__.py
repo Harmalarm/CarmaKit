@@ -26,7 +26,7 @@ from typing import List, Tuple, Set
 
 import bpy
 
-from . import operators
+from . import ops
 from . import ui
 from . import preferences
 
@@ -34,9 +34,9 @@ from . import preferences
 # List of classes to register with Blender.
 _classes: List[type] = [
     preferences.CarmaKitPreferences,
-    operators.CARMAKIT_OT_import_model,
-    operators.CARMAKIT_OT_apply_grooves,
-    operators.CARMAKIT_OT_export_model,
+    ops.CARMAKIT_OT_import_model,
+    ops.CARMAKIT_OT_apply_grooves,
+    ops.CARMAKIT_OT_export_model,
     ui.GrooveItem,
     ui.CARMAKIT_UL_groove_list,
     ui.CARMAKIT_OT_add_groove_item,
@@ -59,7 +59,7 @@ def menu_func_import(self, context: bpy.types.Context) -> None:
     :rtype: None
     """
     self.layout.operator(
-        operators.CARMAKIT_OT_import_model.bl_idname,
+        ops.CARMAKIT_OT_import_model.bl_idname,
         text="Carmageddon Model (.act/.dat)"
     )
 
@@ -74,7 +74,7 @@ def menu_func_export(self, context: bpy.types.Context) -> None:
     :rtype: None
     """
     self.layout.operator(
-        operators.CARMAKIT_OT_export_model.bl_idname,
+        ops.CARMAKIT_OT_export_model.bl_idname,
         text="Carmageddon Model (.act/.dat)"
     )
 
