@@ -52,11 +52,12 @@ coverage.xml
 cover/
 
 # Static Files
-eagle3_export/
 ihorse/
 eagle3/
+eagle3_export/
 eagle/
 newcity1/
+oldVersion/
 
 # Translations
 *.mo
