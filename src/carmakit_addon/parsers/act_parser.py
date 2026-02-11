@@ -39,12 +39,6 @@ def parse_act_file(filepath: str) -> ActFile:
     parent indices. Each actor's parent is the actor that was current
     when it was created, and the hierarchy end record pops back up.
 
-    :param filepath: Path to the ACT file.
-    :type filepath: str
-    :return: Parsed ACT file structure.
-    :rtype: ActFile
-    :raises ParseError: If parsing fails.
-    :raises FileNotFoundError: If file does not exist.
     """
     result = ActFile()
 

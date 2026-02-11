@@ -30,14 +30,6 @@ def write_act_file(
     """
     Write an ACT actor file.
 
-    :param filepath: Path to the output ACT file.
-    :type filepath: str
-    :param act_file: The ACT file structure to write.
-    :type act_file: ActFile
-    :param legacy_hierarchy: Use legacy hierarchy markers without 0x29.
-    :type legacy_hierarchy: bool
-    :return: None.
-    :rtype: None
     """
     with open(filepath, 'wb') as f:
         write_file_header(f, FILE_TYPE_ACT)
@@ -63,16 +55,6 @@ def _write_act_node(
     """
     Write an actor node and its children to an ACT file.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :param node: The actor node to write.
-    :type node: ActorNode
-    :param legacy_hierarchy: Use legacy hierarchy markers without 0x29.
-    :type legacy_hierarchy: bool
-    :param is_root: Whether this node is the root of the ACT file.
-    :type is_root: bool
-    :return: None.
-    :rtype: None
     """
     # Write actor name and attributes.
     name_bytes = node.name.encode('ascii') + b'\x00'

@@ -47,10 +47,6 @@ def _log_debug(message: str) -> None:
     """
     Log a debug message when debug logging is enabled.
 
-    :param message: The message to log.
-    :type message: str
-    :return: None.
-    :rtype: None
     """
     try:
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -66,22 +62,6 @@ class ExportOptions:
     """
     Options for the export operation.
 
-    :param filepath: Path to the output file.
-    :type filepath: str
-    :param scale: Scale factor to apply to geometry.
-    :type scale: float
-    :param selected_only: Export only selected objects.
-    :type selected_only: bool
-    :param apply_modifiers: Apply modifiers before export.
-    :type apply_modifiers: bool
-    :param triangulate: Triangulate faces before export.
-    :type triangulate: bool
-    :param generate_sdf: Generate SDF file for Plaything.
-    :type generate_sdf: bool
-    :param export_format: Which files to export.
-    :type export_format: str
-    :param game_version: Target Carmageddon game version.
-    :type game_version: str
     """
 
     filepath: str
@@ -100,12 +80,6 @@ class ExportResult:
     """
     Result of an export operation.
 
-    :param success: Whether the export was successful.
-    :type success: bool
-    :param files_written: Number of files written.
-    :type files_written: int
-    :param error_message: Error message if export failed.
-    :type error_message: str
     """
 
     success: bool = True
@@ -120,12 +94,6 @@ def export_carmageddon_model(
     """
     Export Blender objects to Carmageddon format.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param options: Export options.
-    :type options: ExportOptions
-    :return: Result of the export operation.
-    :rtype: ExportResult
     """
     result = ExportResult()
     _apply_bru_export_scale(options)
@@ -247,10 +215,6 @@ def _apply_bru_export_scale(options: ExportOptions) -> None:
     """
     Apply BRU unit conversion to the export scale when enabled.
 
-    :param options: Export options to update.
-    :type options: ExportOptions
-    :return: None.
-    :rtype: None
     """
     try:
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -269,14 +233,6 @@ def _create_dat_file(
     """
     Create a DatFile from Blender objects.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param objects: List of objects to export.
-    :type objects: List[bpy.types.Object]
-    :param options: Export options.
-    :type options: ExportOptions
-    :return: The created DatFile.
-    :rtype: DatFile
     """
     dat_file = DatFile()
 
@@ -301,14 +257,6 @@ def _create_model_from_object(
     """
     Create a DatModel from a Blender object.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param obj: The Blender object to convert.
-    :type obj: bpy.types.Object
-    :param options: Export options.
-    :type options: ExportOptions
-    :return: The created model or None if conversion failed.
-    :rtype: Optional[DatModel]
     """
     # Get evaluated mesh (with modifiers applied if requested).
     if options.apply_modifiers:
@@ -454,10 +402,6 @@ def _compute_smoothing_groups(bm: bmesh.types.BMesh) -> Dict[int, int]:
     group bit. Faces can accumulate multiple bits if they share soft
     edges with different neighboring groups.
 
-    :param bm: The bmesh to analyze.
-    :type bm: bmesh.types.BMesh
-    :return: Mapping of face index to smoothing group bitmask.
-    :rtype: Dict[int, int]
     """
     face_masks: Dict[int, int] = {face.index: 0 for face in bm.faces}
     next_bit = 0
@@ -498,12 +442,6 @@ def _create_mat_file(
     """
     Create a MatFile from Blender materials.
 
-    :param materials: Dictionary of materials to export.
-    :type materials: Dict[str, bpy.types.Material]
-    :param base_path: Base path for texture references.
-    :type base_path: str
-    :return: The created MatFile.
-    :rtype: MatFile
     """
     mat_file = MatFile()
 
@@ -561,14 +499,6 @@ def _create_act_file(
     """
     Create an ActFile from Blender objects.
 
-    :param objects: List of objects to export.
-    :type objects: List[bpy.types.Object]
-    :param base_name: Base name for the model.
-    :type base_name: str
-    :param options: Export options.
-    :type options: ExportOptions
-    :return: The created ActFile.
-    :rtype: ActFile
     """
     act_file = ActFile()
 
@@ -654,14 +584,6 @@ def _create_actor_node_from_object(
     """
     Create an ActorNode from a Blender object.
 
-    :param obj: The Blender object.
-    :type obj: bpy.types.Object
-    :param options: Export options.
-    :type options: ExportOptions
-    :param include_bounding_box: Whether to include bounding box data.
-    :type include_bounding_box: bool
-    :return: The created ActorNode.
-    :rtype: ActorNode
     """
     node = ActorNode()
     node.name = obj.name
@@ -720,9 +642,5 @@ def _format_model_name(object_name: str) -> str:
     """
     Format a model name for ACT references.
 
-    :param object_name: The Blender object name.
-    :type object_name: str
-    :return: Model name as-is (verbatim object name).
-    :rtype: str
     """
     return object_name

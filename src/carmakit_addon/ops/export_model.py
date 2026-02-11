@@ -104,12 +104,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         """
         Initialize export options before showing the file dialog.
 
-        :param context: The Blender context.
-        :type context: Context
-        :param event: The Blender event.
-        :type event: bpy.types.Event
-        :return: Operator result.
-        :rtype: Set[str]
         """
         try:
             prefs = bpy.context.preferences.addons[__package__].preferences
@@ -123,10 +117,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         """
         Execute the export operation.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: Status set indicating success or failure.
-        :rtype: Set[str]
         """
         # Build export options from operator properties.
         options = exporter.ExportOptions(
@@ -160,10 +150,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         """
         Draw the export options panel.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         layout.use_property_split = True

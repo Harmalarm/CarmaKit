@@ -25,10 +25,6 @@ def _build_groove_map(
     """
     Build a groove map keyed by normalized actor names.
 
-    :param grooves: Groove definitions to map.
-    :type grooves: List[GrooveDefinition]
-    :return: Mapping of actor name to groove definitions.
-    :rtype: Dict[str, List[GrooveDefinition]]
     """
     result: Dict[str, List[GrooveDefinition]] = {}
     for groove in grooves:
@@ -44,12 +40,6 @@ def _apply_grooves_to_object(
     """
     Apply groove custom properties to an object.
 
-    :param obj: Blender object to update.
-    :type obj: bpy.types.Object
-    :param groove_map: Groove definitions mapped by actor name.
-    :type groove_map: Dict[str, List[GrooveDefinition]]
-    :return: True when grooves were applied.
-    :rtype: bool
     """
     key = normalize_actor_name(obj.name)
     grooves = groove_map.get(key)
@@ -95,10 +85,6 @@ class CARMAKIT_OT_apply_grooves(Operator, ImportHelper):
         """
         Execute the groove application operation.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: Status set indicating success or failure.
-        :rtype: Set[str]
         """
         try:
             result = parse_groove_sections(self.filepath)
@@ -131,10 +117,6 @@ class CARMAKIT_OT_apply_grooves(Operator, ImportHelper):
         """
         Draw groove application options.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         layout.use_property_split = True

@@ -24,12 +24,6 @@ def parse_mat_file(filepath: str) -> MatFile:
     """
     Parse a MAT material file.
 
-    :param filepath: Path to the MAT file.
-    :type filepath: str
-    :return: Parsed MAT file structure.
-    :rtype: MatFile
-    :raises ParseError: If parsing fails.
-    :raises FileNotFoundError: If file does not exist.
     """
     result = MatFile()
 
@@ -55,10 +49,6 @@ def _parse_mat_material(f: BinaryIO) -> Optional[Material]:
     """
     Parse a single material from a MAT file.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :return: Parsed material or None if at end of file.
-    :rtype: Optional[Material]
     """
     material = Material()
 

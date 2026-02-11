@@ -14,18 +14,6 @@ class GrooveDefinition:
     """
     Parsed groove definition from a car setup file.
 
-    :param index: Groove index in the file order.
-    :type index: int
-    :param actor_name: Actor name referenced by the groove.
-    :type actor_name: str
-    :param lollipop: Lollipop setting.
-    :type lollipop: str
-    :param trigger: Trigger setting.
-    :type trigger: str
-    :param path: Path settings dictionary.
-    :type path: Dict[str, object]
-    :param animation: Animation settings dictionary.
-    :type animation: Dict[str, object]
     """
 
     index: int
@@ -39,8 +27,6 @@ class GrooveDefinition:
         """
         Convert the groove definition into a custom property dict.
 
-        :return: Dictionary with simple types for Blender ID properties.
-        :rtype: Dict[str, object]
         """
         return {
             "index": self.index,
@@ -57,8 +43,6 @@ class GrooveParseResult:
     """
     Parsed groove data from a file.
 
-    :param grooves: List of groove definitions.
-    :type grooves: List[GrooveDefinition]
     """
 
     grooves: List[GrooveDefinition] = field(default_factory=list)
@@ -67,8 +51,6 @@ class GrooveParseResult:
         """
         Group grooves by normalized actor name.
 
-        :return: Mapping of actor name to groove list.
-        :rtype: Dict[str, List[GrooveDefinition]]
         """
         result: Dict[str, List[GrooveDefinition]] = {}
         for groove in self.grooves:
@@ -81,10 +63,6 @@ def parse_groove_sections(filepath: str) -> GrooveParseResult:
     """
     Parse groove sections from a Carmageddon car setup file.
 
-    :param filepath: Path to the text file.
-    :type filepath: str
-    :return: Parsed groove definitions.
-    :rtype: GrooveParseResult
     """
     with open(filepath, "r", encoding="ascii", errors="ignore") as f:
         raw_lines = f.readlines()
@@ -99,10 +77,6 @@ def normalize_actor_name(name: str) -> str:
     """
     Normalize actor names for matching.
 
-    :param name: Actor name from the groove definition.
-    :type name: str
-    :return: Normalized actor name.
-    :rtype: str
     """
     base = name.strip()
     if base.lower().endswith(".act"):
@@ -114,10 +88,6 @@ def _sanitize_lines(lines: Iterable[str]) -> List[str]:
     """
     Clean lines by removing comments and empty lines.
 
-    :param lines: Raw lines from the text file.
-    :type lines: Iterable[str]
-    :return: Sanitized lines.
-    :rtype: List[str]
     """
     result: List[str] = []
     for line in lines:
@@ -131,10 +101,6 @@ def _extract_groove_lines(lines: List[str]) -> List[str]:
     """
     Extract the lines within the groove section.
 
-    :param lines: Sanitized lines.
-    :type lines: List[str]
-    :return: Groove section lines.
-    :rtype: List[str]
     """
     start_token = "START OF GROOVE"
     end_token = "END OF GROOVE"
@@ -156,10 +122,6 @@ def _parse_groove_blocks(lines: List[str]) -> List[GrooveDefinition]:
     """
     Parse groove blocks from a groove section.
 
-    :param lines: Groove section lines.
-    :type lines: List[str]
-    :return: Parsed groove definitions.
-    :rtype: List[GrooveDefinition]
     """
     blocks: List[List[str]] = []
     current: List[str] = []
@@ -190,12 +152,6 @@ def _parse_groove_block(
     """
     Parse a single groove block.
 
-    :param index: Groove index.
-    :type index: int
-    :param lines: Groove block lines.
-    :type lines: List[str]
-    :return: Groove definition or None when invalid.
-    :rtype: Optional[GrooveDefinition]
     """
     if len(lines) < 4:
         return None
@@ -235,14 +191,6 @@ def _parse_path(
     """
     Parse path details for a groove.
 
-    :param path_type: Path type line.
-    :type path_type: str
-    :param lines: Groove block lines.
-    :type lines: List[str]
-    :param cursor: Current cursor position.
-    :type cursor: int
-    :return: Path data and updated cursor.
-    :rtype: tuple[Dict[str, object], int]
     """
     data: Dict[str, object] = {"type": path_type}
 
@@ -289,14 +237,6 @@ def _parse_animation(
     """
     Parse animation details for a groove.
 
-    :param animation_type: Animation type line.
-    :type animation_type: str
-    :param lines: Groove block lines.
-    :type lines: List[str]
-    :param cursor: Current cursor position.
-    :type cursor: int
-    :return: Animation data and updated cursor.
-    :rtype: tuple[Dict[str, object], int]
     """
     data: Dict[str, object] = {"type": animation_type}
 
@@ -348,12 +288,6 @@ def _next_line(lines: List[str], cursor: int) -> tuple[str, int]:
     """
     Safely fetch the next line from the block.
 
-    :param lines: Groove block lines.
-    :type lines: List[str]
-    :param cursor: Current cursor position.
-    :type cursor: int
-    :return: Line and updated cursor.
-    :rtype: tuple[str, int]
     """
     if cursor >= len(lines):
         return "", cursor
@@ -364,10 +298,6 @@ def _parse_value(value: str) -> object:
     """
     Parse a numeric or vector value from a groove line.
 
-    :param value: Raw value string.
-    :type value: str
-    :return: Parsed value or original string.
-    :rtype: object
     """
     if "," in value:
         parts = [part.strip() for part in value.split(",")]
@@ -383,10 +313,6 @@ def _parse_scalar(value: str) -> object:
     """
     Parse a scalar numeric value.
 
-    :param value: Raw value string.
-    :type value: str
-    :return: Parsed int/float or original string.
-    :rtype: object
     """
     try:
         return int(value)

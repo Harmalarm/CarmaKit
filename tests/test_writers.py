@@ -46,8 +46,6 @@ class TestDatWriter:
         """
         Test writing a simple model to a DAT file.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create a simple triangle.
         model = DatModel()
@@ -80,8 +78,6 @@ class TestDatWriter:
         """
         Test that a DAT file can be written and re-read.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create test model.
         model = DatModel()
@@ -128,8 +124,6 @@ class TestActWriter:
         """
         Test writing a simple ACT file.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create actor node.
         root = ActorNode()
@@ -155,8 +149,6 @@ class TestActWriter:
         """
         Test that an ACT file can be written and re-read.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create actor hierarchy.
         root = ActorNode()
@@ -194,8 +186,6 @@ class TestMatWriter:
         """
         Test writing a simple MAT file.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create material.
         mat = Material()
@@ -218,8 +208,6 @@ class TestMatWriter:
         """
         Test that a MAT file can be written and re-read.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         # Create material.
         mat = Material()
@@ -245,8 +233,6 @@ class TestMatWriter:
         """
         Test that C1 exports append MAT and PIX suffixes.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         mat = Material()
         mat.name = "C1Material"
@@ -274,8 +260,6 @@ class TestSdfWriter:
         """
         Test writing an empty SDF file.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         output_path = tmp_path / "test.sdf"
         write_sdf_file(str(output_path))

@@ -149,10 +149,6 @@ class CarmaKitPreferences(AddonPreferences):
         """
         Draw the addon preferences panel.
 
-        :param context: The Blender context.
-        :type context: bpy.types.Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
 

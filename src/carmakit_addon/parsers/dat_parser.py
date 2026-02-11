@@ -34,12 +34,6 @@ def parse_dat_file(filepath: str) -> DatFile:
     """
     Parse a DAT model file.
 
-    :param filepath: Path to the DAT file.
-    :type filepath: str
-    :return: Parsed DAT file structure.
-    :rtype: DatFile
-    :raises ParseError: If parsing fails.
-    :raises FileNotFoundError: If file does not exist.
     """
     result = DatFile()
 
@@ -65,10 +59,6 @@ def _parse_dat_model(f: BinaryIO) -> Optional[DatModel]:
     """
     Parse a single model from a DAT file.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :return: Parsed model or None if at end of file.
-    :rtype: Optional[DatModel]
     """
     model = DatModel()
     face_material_indices: List[int] = []

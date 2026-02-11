@@ -13,12 +13,6 @@ class Vector3:
     """
     A 3D vector with x, y, z components.
 
-    :param x: X coordinate.
-    :type x: float
-    :param y: Y coordinate.
-    :type y: float
-    :param z: Z coordinate.
-    :type z: float
     """
 
     x: float = 0.0
@@ -29,8 +23,6 @@ class Vector3:
         """
         Convert to tuple representation.
 
-        :return: Tuple of (x, y, z).
-        :rtype: Tuple[float, float, float]
         """
         return (self.x, self.y, self.z)
 
@@ -40,10 +32,6 @@ class Vector2:
     """
     A 2D vector with u, v components (for texture coordinates).
 
-    :param u: U texture coordinate.
-    :type u: float
-    :param v: V texture coordinate.
-    :type v: float
     """
 
     u: float = 0.0
@@ -53,7 +41,5 @@ class Vector2:
         """
         Convert to tuple representation.
 
-        :return: Tuple of (u, v).
-        :rtype: Tuple[float, float]
         """
         return (self.u, self.v)

@@ -125,10 +125,6 @@ class GrooveProps:
         """
         Get the first enum identifier.
 
-        :param items: Enum items list.
-        :type items: List[Tuple[str, str, str]]
-        :return: First enum identifier.
-        :rtype: str
         """
         return items[0][0]
 
@@ -137,12 +133,6 @@ class GrooveProps:
         """
         Convert an enum identifier into its text value.
 
-        :param value: Enum identifier.
-        :type value: str
-        :param mapping: Mapping of enum identifiers to text values.
-        :type mapping: Dict[str, str]
-        :return: Mapped string or empty string.
-        :rtype: str
         """
         return mapping.get(value, "")
 
@@ -154,12 +144,6 @@ class GrooveProps:
         """
         Normalize a stored value to an enum identifier.
 
-        :param value: Stored value.
-        :type value: Optional[str]
-        :param items: Enum items list.
-        :type items: List[Tuple[str, str, str]]
-        :return: Enum identifier.
-        :rtype: str
         """
         if not value:
             return GrooveProps.first_enum_item(items)
@@ -173,10 +157,6 @@ class GrooveProps:
         """
         Ensure the groove dictionary is present on the object.
 
-        :param obj: Blender object.
-        :type obj: bpy.types.Object
-        :return: Groove dictionary.
-        :rtype: Dict[str, object]
         """
         grooves = obj.get("carmakit_grooves")
         if isinstance(grooves, dict):
@@ -194,10 +174,6 @@ def _item_to_dict(item: "GrooveItem") -> Dict[str, object]:
     """
     Convert a groove item to a custom property dictionary.
 
-    :param item: Groove item.
-    :type item: GrooveItem
-    :return: Groove dictionary.
-    :rtype: Dict[str, object]
     """
     lollipop = GrooveProps.enum_value(
         item.lollipop,
@@ -318,12 +294,6 @@ def _update_groove_item(item: "GrooveItem", context: Context) -> None:
     """
     Update custom properties when groove items change.
 
-    :param item: Groove item.
-    :type item: GrooveItem
-    :param context: Blender context.
-    :type context: Context
-    :return: None.
-    :rtype: None
     """
     wm = context.window_manager
     if wm.get("carmakit_syncing_grooves"):

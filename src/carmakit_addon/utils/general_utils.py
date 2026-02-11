@@ -18,14 +18,6 @@ class ExportVertexIndexResult:
     """
     Result for exporting a single vertex index lookup.
 
-    :param status: Status string for UI mapping.
-    :type status: str
-    :param message: User-facing message describing the status.
-    :type message: str
-    :param index: Export vertex index when available.
-    :type index: Optional[int]
-    :param modifier_warning: Whether to warn about modifier effects.
-    :type modifier_warning: bool
     """
 
     status: str
@@ -40,10 +32,6 @@ def get_export_vertex_index(
     """
     Get the Carmageddon export vertex index for a single selection.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :return: Result with status, message, and export index.
-    :rtype: ExportVertexIndexResult
     """
     obj = context.active_object
     if not obj or obj.type != 'MESH':
@@ -102,14 +90,6 @@ def cleanup_scene(
     """
     Clean up the current scene and orphaned data blocks.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param remove_objects: Whether to remove all scene objects.
-    :type remove_objects: bool
-    :param purge_data: Whether to purge unused data blocks.
-    :type purge_data: bool
-    :return: None.
-    :rtype: None
     """
     if remove_objects:
         # Remove all objects in the current scene.
@@ -132,10 +112,6 @@ def _purge_orphaned_data_blocks(
     """
     Remove any data blocks with zero users.
 
-    :param data_blocks: Iterable of data block collections.
-    :type data_blocks: Iterable[bpy.types.ID]
-    :return: None.
-    :rtype: None
     """
     for collection in data_blocks:
         for block in list(collection):

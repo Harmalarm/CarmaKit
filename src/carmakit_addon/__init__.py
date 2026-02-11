@@ -53,10 +53,6 @@ def menu_func_import(self, context: bpy.types.Context) -> None:
     """
     Add import option to File > Import menu.
 
-    :param self: The menu instance.
-    :param context: The Blender context.
-    :return: None.
-    :rtype: None
     """
     self.layout.operator(
         ops.CARMAKIT_OT_import_model.bl_idname,
@@ -68,10 +64,6 @@ def menu_func_export(self, context: bpy.types.Context) -> None:
     """
     Add export option to File > Export menu.
 
-    :param self: The menu instance.
-    :param context: The Blender context.
-    :return: None.
-    :rtype: None
     """
     self.layout.operator(
         ops.CARMAKIT_OT_export_model.bl_idname,
@@ -85,8 +77,6 @@ def register() -> None:
 
     This function is called by Blender when enabling the addon.
 
-    :return: None.
-    :rtype: None
     """
     for cls in _classes:
         bpy.utils.register_class(cls)
@@ -104,8 +94,6 @@ def unregister() -> None:
 
     This function is called by Blender when disabling the addon.
 
-    :return: None.
-    :rtype: None
     """
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)

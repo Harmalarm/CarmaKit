@@ -65,10 +65,6 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         """
         Execute the import operation.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: Status set indicating success or failure.
-        :rtype: Set[str]
         """
         # Build import options from operator properties.
         options = importer.ImportOptions(
@@ -99,10 +95,6 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         """
         Draw the import options panel.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         layout.use_property_split = True

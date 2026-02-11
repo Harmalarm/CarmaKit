@@ -20,8 +20,6 @@ class TransformMatrix:
     The matrix is stored in the format used by Carmageddon:
     Xx, Yx, Zx, Xy, Yy, Zy, Xz, Yz, Zz, Px, Py, Pz
 
-    :param values: The 12 float values of the matrix.
-    :type values: Tuple[float, ...]
     """
 
     values: Tuple[float, ...] = field(
@@ -38,8 +36,6 @@ class TransformMatrix:
         """
         Get the 3x3 rotation portion of the matrix.
 
-        :return: 3x3 rotation matrix as nested tuples.
-        :rtype: Tuple[Tuple[float, float, float], ...]
         """
         return (
             (self.values[0], self.values[1], self.values[2]),
@@ -52,8 +48,6 @@ class TransformMatrix:
         """
         Get the position (translation) portion of the matrix.
 
-        :return: Position as Vector3.
-        :rtype: Vector3
         """
         return Vector3(self.values[9], self.values[10], self.values[11])
 
@@ -62,10 +56,6 @@ class BoundingBox:
     """
     An axis-aligned bounding box.
 
-    :param min_point: Minimum corner of the bounding box.
-    :type min_point: Vector3
-    :param max_point: Maximum corner of the bounding box.
-    :type max_point: Vector3
     """
 
     min_point: Vector3 = field(default_factory=Vector3)
@@ -76,20 +66,6 @@ class ActorNode:
     """
     A node in the ACT hierarchy.
 
-    :param name: Actor name.
-    :type name: str
-    :param attributes: Actor attributes (2 bytes).
-    :type attributes: int
-    :param transform: Transformation matrix.
-    :type transform: TransformMatrix
-    :param bounding_box: Bounding box (optional).
-    :type bounding_box: Optional[BoundingBox]
-    :param model_name: Referenced model name (optional).
-    :type model_name: Optional[str]
-    :param materials: List of material names (optional).
-    :type materials: List[str]
-    :param children: Child actor nodes.
-    :type children: List[ActorNode]
     """
 
     name: str = ""
@@ -105,8 +81,6 @@ class ActFile:
     """
     A complete ACT file with the actor hierarchy.
 
-    :param root: Root actor node.
-    :type root: Optional[ActorNode]
     """
 
     root: Optional[ActorNode] = None

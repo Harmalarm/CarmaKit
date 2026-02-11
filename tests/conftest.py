@@ -27,8 +27,6 @@ def static_dir() -> Path:
     """
     Return the path to the static test files directory.
 
-    :return: Path to static directory.
-    :rtype: Path
     """
     return STATIC_DIR
 
@@ -38,8 +36,6 @@ def eagle3_dir() -> Path:
     """
     Return the path to the Eagle3 test model directory.
 
-    :return: Path to Eagle3 directory.
-    :rtype: Path
     """
     return EAGLE3_DIR
 
@@ -49,10 +45,6 @@ def eagle3_act_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the Eagle3 ACT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to EAGLE3.ACT file.
-    :rtype: Path
     """
     return eagle3_dir / "EAGLE3.ACT"
 
@@ -62,10 +54,6 @@ def eagle3_dat_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the Eagle3 DAT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to Eagle3.dat file.
-    :rtype: Path
     """
     return eagle3_dir / "Eagle3.dat"
 
@@ -75,10 +63,6 @@ def eagle3_mat_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the Eagle3 MAT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to Eagle3.mat file.
-    :rtype: Path
     """
     return eagle3_dir / "Eagle3.mat"
 
@@ -88,10 +72,6 @@ def simple_eagle3_act_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the simple Eagle3 ACT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to simple_eagle3.act file.
-    :rtype: Path
     """
     return eagle3_dir / "simple_eagle3.act"
 
@@ -101,10 +81,6 @@ def simple_eagle3_dat_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the simple Eagle3 DAT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to simple_eagle3.dat file.
-    :rtype: Path
     """
     return eagle3_dir / "simple_eagle3.dat"
 
@@ -114,9 +90,5 @@ def simple_eagle3_mat_path(eagle3_dir: Path) -> Path:
     """
     Return the path to the simple Eagle3 MAT file.
 
-    :param eagle3_dir: Path to Eagle3 directory.
-    :type eagle3_dir: Path
-    :return: Path to simple_eagle3.mat file.
-    :rtype: Path
     """
     return eagle3_dir / "simple_eagle3.mat"

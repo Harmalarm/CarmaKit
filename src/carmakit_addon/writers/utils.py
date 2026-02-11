@@ -14,12 +14,6 @@ def write_file_header(f: BinaryIO, file_type: int) -> None:
     """
     Write a file header.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :param file_type: The file type identifier.
-    :type file_type: int
-    :return: None.
-    :rtype: None
     """
     BinaryWriter.write_record_header(f, FILE_HEADER_TYPE, 8)
     BinaryWriter.write_uint32(f, file_type)

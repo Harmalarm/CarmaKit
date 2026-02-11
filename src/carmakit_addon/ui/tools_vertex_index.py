@@ -24,10 +24,6 @@ class CARMAKIT_PT_tool_vertex_index(Panel):
         """
         Draw the export vertex index tool.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         box = layout.box()

@@ -18,24 +18,6 @@ class Material:
     """
     A material from a MAT file.
 
-    :param name: Material name.
-    :type name: str
-    :param color: RGBA color (4 bytes).
-    :type color: Tuple[int, int, int, int]
-    :param ambient: Ambient lighting factor.
-    :type ambient: float
-    :param directional: Directional lighting factor.
-    :type directional: float
-    :param specular: Specular lighting factor.
-    :type specular: float
-    :param specular_power: Specular power/shininess.
-    :type specular_power: float
-    :param flags: Material flags.
-    :type flags: int
-    :param uv_transform: UV transformation matrix (6 floats).
-    :type uv_transform: Tuple[float, ...]
-    :param texture_name: Referenced texture/image name.
-    :type texture_name: Optional[str]
     """
 
     name: str = ""
@@ -55,8 +37,6 @@ class Material:
         """
         Check if material is two-sided.
 
-        :return: True if two-sided flag is set.
-        :rtype: bool
         """
         return bool(self.flags & 0x00001000)
 
@@ -65,8 +45,6 @@ class Material:
         """
         Check if material is lit.
 
-        :return: True if lit flag is set.
-        :rtype: bool
         """
         return bool(self.flags & 0x00000001)
 
@@ -76,8 +54,6 @@ class MatFile:
     """
     A complete MAT file with multiple materials.
 
-    :param materials: List of materials.
-    :type materials: List[Material]
     """
 
     materials: List[Material] = field(default_factory=list)

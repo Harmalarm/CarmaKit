@@ -18,16 +18,6 @@ class Face:
     """
     A triangular face with vertex indices.
 
-    :param v1: First vertex index.
-    :type v1: int
-    :param v2: Second vertex index.
-    :type v2: int
-    :param v3: Third vertex index.
-    :type v3: int
-    :param flags: Face flags (3 bytes: 2 bytes smoothing group + 1 byte edge visibility).
-    :type flags: bytes
-    :param material_index: Index into material list (1-based).
-    :type material_index: int
     """
 
     v1: int = 0
@@ -43,8 +33,6 @@ class Face:
 
         The smoothing group is stored in the first 2 bytes of flags.
 
-        :return: Smoothing group index.
-        :rtype: int
         """
         if len(self.flags) >= 2:
             # Big-endian 16-bit value from first 2 bytes.
@@ -61,8 +49,6 @@ class Face:
         Bit 1 (value 2): Edge 1 hidden
         Bit 2 (value 4): Edge 2 hidden
 
-        :return: Edge visibility bitmask.
-        :rtype: int
         """
         if len(self.flags) >= 3:
             return self.flags[2]
@@ -73,18 +59,6 @@ class DatModel:
     """
     A mesh model from a DAT file.
 
-    :param name: Model name.
-    :type name: str
-    :param attributes: Model attributes (2 bytes).
-    :type attributes: int
-    :param vertices: List of vertex positions.
-    :type vertices: List[Vector3]
-    :param tex_coords: List of texture coordinates.
-    :type tex_coords: List[Vector2]
-    :param faces: List of faces.
-    :type faces: List[Face]
-    :param materials: List of material names.
-    :type materials: List[str]
     """
 
     name: str = ""
@@ -99,8 +73,6 @@ class DatFile:
     """
     A complete DAT file with multiple models.
 
-    :param models: List of models.
-    :type models: List[DatModel]
     """
 
     models: List[DatModel] = field(default_factory=list)

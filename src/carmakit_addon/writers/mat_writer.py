@@ -25,14 +25,6 @@ def write_mat_file(
     """
     Write a MAT material file.
 
-    :param filepath: Path to the output MAT file.
-    :type filepath: str
-    :param mat_file: The MAT file structure to write.
-    :type mat_file: MatFile
-    :param game_version: Target Carmageddon game version.
-    :type game_version: str
-    :return: None.
-    :rtype: None
     """
     with open(filepath, 'wb') as f:
         write_file_header(f, FILE_TYPE_MAT)
@@ -49,14 +41,6 @@ def _write_mat_material(
     """
     Write a single material to a MAT file.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :param material: The material to write.
-    :type material: Material
-    :param game_version: Target Carmageddon game version.
-    :type game_version: str
-    :return: None.
-    :rtype: None
     """
     # Calculate record length.
     material_name = _format_mat_name(material.name, game_version)
@@ -120,12 +104,6 @@ def _format_mat_name(name: str, game_version: str) -> str:
     """
     Format the material name based on game version requirements.
 
-    :param name: The material name.
-    :type name: str
-    :param game_version: Target Carmageddon game version.
-    :type game_version: str
-    :return: Formatted material name.
-    :rtype: str
     """
     if game_version != 'C1':
         return name
@@ -140,12 +118,6 @@ def _format_pix_name(name: str, game_version: str) -> str:
     """
     Format the texture name based on game version requirements.
 
-    :param name: The texture name.
-    :type name: str
-    :param game_version: Target Carmageddon game version.
-    :type game_version: str
-    :return: Formatted texture name.
-    :rtype: str
     """
     if game_version != 'C1':
         return name

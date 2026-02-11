@@ -19,11 +19,6 @@ def read_file_header(f: BinaryIO) -> Tuple[int, int]:
     """
     Read and validate a file header.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :return: Tuple of (file_type, version).
-    :rtype: Tuple[int, int]
-    :raises ParseError: If header is invalid.
     """
     record_type, length = BinaryReader.read_record_header(f)
     if record_type != FILE_HEADER_TYPE:
@@ -47,10 +42,6 @@ def find_related_files(
     Given any of these file types, attempts to locate the other
     related files in the same directory.
 
-    :param filepath: Path to any ACT, DAT, or MAT file.
-    :type filepath: str
-    :return: Tuple of (act_path, dat_path, mat_path).
-    :rtype: Tuple[Optional[str], Optional[str], Optional[str]]
     """
     directory = os.path.dirname(filepath)
     base_name = os.path.splitext(os.path.basename(filepath))[0]

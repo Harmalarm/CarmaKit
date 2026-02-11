@@ -24,8 +24,6 @@ class TestDatParser:
         """
         Test parsing the Eagle3 DAT file.
 
-        :param eagle3_dat_path: Path to Eagle3.dat fixture.
-        :type eagle3_dat_path: Path
         """
         if not eagle3_dat_path.exists():
             pytest.skip(f"Test file not found: {eagle3_dat_path}")
@@ -47,8 +45,6 @@ class TestDatParser:
         """
         Test parsing the simple Eagle3 DAT file.
 
-        :param simple_eagle3_dat_path: Path to simple_eagle3.dat fixture.
-        :type simple_eagle3_dat_path: Path
         """
         if not simple_eagle3_dat_path.exists():
             pytest.skip(f"Test file not found: {simple_eagle3_dat_path}")
@@ -60,8 +56,6 @@ class TestDatParser:
         """
         Test parsing a file that doesn't exist raises an error.
 
-        :param tmp_path: Temporary directory fixture.
-        :type tmp_path: Path
         """
         fake_path = tmp_path / "nonexistent.dat"
         with pytest.raises(FileNotFoundError):
@@ -75,8 +69,6 @@ class TestActParser:
         """
         Test parsing the Eagle3 ACT file.
 
-        :param eagle3_act_path: Path to EAGLE3.ACT fixture.
-        :type eagle3_act_path: Path
         """
         if not eagle3_act_path.exists():
             pytest.skip(f"Test file not found: {eagle3_act_path}")
@@ -93,8 +85,6 @@ class TestActParser:
         """
         Test parsing the simple Eagle3 ACT file.
 
-        :param simple_eagle3_act_path: Path to simple_eagle3.act fixture.
-        :type simple_eagle3_act_path: Path
         """
         if not simple_eagle3_act_path.exists():
             pytest.skip(f"Test file not found: {simple_eagle3_act_path}")
@@ -110,8 +100,6 @@ class TestMatParser:
         """
         Test parsing the Eagle3 MAT file.
 
-        :param eagle3_mat_path: Path to Eagle3.mat fixture.
-        :type eagle3_mat_path: Path
         """
         if not eagle3_mat_path.exists():
             pytest.skip(f"Test file not found: {eagle3_mat_path}")
@@ -131,8 +119,6 @@ class TestMatParser:
         """
         Test parsing the simple Eagle3 MAT file.
 
-        :param simple_eagle3_mat_path: Path to simple_eagle3.mat fixture.
-        :type simple_eagle3_mat_path: Path
         """
         if not simple_eagle3_mat_path.exists():
             pytest.skip(f"Test file not found: {simple_eagle3_mat_path}")
@@ -148,8 +134,6 @@ class TestFindRelatedFiles:
         """
         Test finding related files when given a DAT file.
 
-        :param eagle3_dir: Path to Eagle3 directory fixture.
-        :type eagle3_dir: Path
         """
         dat_path = eagle3_dir / "Eagle3.dat"
         if not dat_path.exists():
@@ -165,8 +149,6 @@ class TestFindRelatedFiles:
         """
         Test finding related files when given an ACT file.
 
-        :param eagle3_dir: Path to Eagle3 directory fixture.
-        :type eagle3_dir: Path
         """
         act_path = eagle3_dir / "EAGLE3.ACT"
         if not act_path.exists():

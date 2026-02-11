@@ -43,10 +43,6 @@ def _log_debug(message: str) -> None:
     """
     Log a debug message when debug logging is enabled.
 
-    :param message: The message to log.
-    :type message: str
-    :return: None.
-    :rtype: None
     """
     try:
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -66,12 +62,6 @@ def _find_model_in_dict(
 
     Models are stored with uppercase names including .DAT extension.
 
-    :param model_name: The model name to search for.
-    :type model_name: str
-    :param models: Dictionary of loaded models.
-    :type models: Dict[str, DatModel]
-    :return: The found model or None.
-    :rtype: Optional[DatModel]
     """
     if not model_name:
         return None
@@ -93,12 +83,6 @@ def _find_groove_txt_path(base_path: str, base_name: str) -> Optional[str]:
     """
     Locate a groove text file matching the base name.
 
-    :param base_path: Directory containing the model files.
-    :type base_path: str
-    :param base_name: Base name for the model files.
-    :type base_name: str
-    :return: Path to the groove text file when found.
-    :rtype: Optional[str]
     """
     for ext in [".txt", ".TXT"]:
         candidate = os.path.join(base_path, base_name + ext)
@@ -116,14 +100,6 @@ def _load_groove_map(
     """
     Load groove definitions and map them by actor name.
 
-    :param filepath: Original import filepath.
-    :type filepath: str
-    :param act_path: Related ACT file path.
-    :type act_path: Optional[str]
-    :param dat_path: Related DAT file path.
-    :type dat_path: Optional[str]
-    :return: Mapping of normalized actor names to groove definitions.
-    :rtype: Dict[str, List[GrooveDefinition]]
     """
     reference_path = act_path or dat_path or filepath
     base_path = os.path.dirname(reference_path)
@@ -151,12 +127,6 @@ def _apply_grooves_to_object(
     """
     Apply groove definitions to a Blender object as custom properties.
 
-    :param obj: Blender object to update.
-    :type obj: bpy.types.Object
-    :param groove_map: Groove definitions mapped by actor name.
-    :type groove_map: Dict[str, List[GrooveDefinition]]
-    :return: None.
-    :rtype: None
     """
     key = normalize_actor_name(obj.name)
     grooves = groove_map.get(key)
@@ -177,18 +147,6 @@ class ImportOptions:
     """
     Options for the import operation.
 
-    :param filepath: Path to the file to import.
-    :type filepath: str
-    :param scale: Scale factor to apply to imported geometry.
-    :type scale: float
-    :param apply_transform: Whether to apply ACT transforms.
-    :type apply_transform: bool
-    :param import_materials: Whether to import materials.
-    :type import_materials: bool
-    :param import_textures: Whether to load textures.
-    :type import_textures: bool
-    :param cleanup_scene: Whether to clean the scene before import.
-    :type cleanup_scene: bool
     """
 
     filepath: str
@@ -204,12 +162,6 @@ class ImportResult:
     """
     Result of an import operation.
 
-    :param success: Whether the import was successful.
-    :type success: bool
-    :param objects_created: Number of objects created.
-    :type objects_created: int
-    :param error_message: Error message if import failed.
-    :type error_message: str
     """
 
     success: bool = True
@@ -227,12 +179,6 @@ def import_carmageddon_model(
     Handles importing from ACT or DAT files, automatically finding
     related files in the same directory.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param options: Import options.
-    :type options: ImportOptions
-    :return: Result of the import operation.
-    :rtype: ImportResult
     """
     result = ImportResult()
     _apply_bru_import_scale(options)
@@ -361,10 +307,6 @@ def _apply_bru_import_scale(options: ImportOptions) -> None:
     """
     Apply BRU unit conversion to the import scale when enabled.
 
-    :param options: Import options to update.
-    :type options: ImportOptions
-    :return: None.
-    :rtype: None
     """
     try:
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -387,14 +329,6 @@ def _create_blender_materials(
     """
     Create Blender materials from a MAT file.
 
-    :param mat_file: Parsed MAT file.
-    :type mat_file: MatFile
-    :param base_path: Base path for finding textures.
-    :type base_path: str
-    :param load_textures: Whether to attempt loading textures.
-    :type load_textures: bool
-    :return: Dictionary mapping material names to Blender materials.
-    :rtype: Dict[str, bpy.types.Material]
     """
     result: Dict[str, bpy.types.Material] = {}
 
@@ -538,14 +472,6 @@ def _find_texture(
     subdirectories. If not found and game_folder is set, also searches
     in the game's PIXELMAP/tiffrgb folder.
 
-    :param base_path: Base directory to search.
-    :type base_path: str
-    :param texture_name: Name of the texture (without extension).
-    :type texture_name: str
-    :param game_folder: Path to Carmageddon game installation folder.
-    :type game_folder: Optional[str]
-    :return: Path to texture file if found, None otherwise.
-    :rtype: Optional[str]
     """
     # Remove extension from texture name if present.
     base_name = os.path.splitext(texture_name)[0]
@@ -624,22 +550,6 @@ def _create_hierarchy_from_act(
     """
     Create Blender objects from an ACT hierarchy.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param node: The actor node to process.
-    :type node: ActorNode
-    :param models: Dictionary of loaded models.
-    :type models: Dict[str, DatModel]
-    :param materials: Dictionary of loaded materials.
-    :type materials: Dict[str, bpy.types.Material]
-    :param options: Import options.
-    :type options: ImportOptions
-    :param parent: Parent Blender object.
-    :type parent: Optional[bpy.types.Object]
-    :param groove_map: Groove definitions mapped by actor name.
-    :type groove_map: Dict[str, List[GrooveDefinition]]
-    :return: List of created Blender objects.
-    :rtype: List[bpy.types.Object]
     """
     created_objects: List[bpy.types.Object] = []
     _log_debug(f"Processing ACT node: '{node.name}' (model_name='{node.model_name}', children={len(node.children)})")
@@ -718,20 +628,6 @@ def _create_mesh_from_model(
     """
     Create a Blender mesh object from a DAT model.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param model: The DAT model to convert.
-    :type model: DatModel
-    :param materials: Dictionary of loaded materials.
-    :type materials: Dict[str, bpy.types.Material]
-    :param options: Import options.
-    :type options: ImportOptions
-    :param parent: Parent Blender object.
-    :type parent: Optional[bpy.types.Object]
-    :param act_materials: Material names from ACT file (overrides DAT).
-    :type act_materials: Optional[List[str]]
-    :return: Created Blender object.
-    :rtype: Optional[bpy.types.Object]
     """
     _log_debug(f"  _create_mesh_from_model: '{model.name}' - {len(model.vertices)} verts, {len(model.faces)} faces")
     if not model.vertices or not model.faces:
@@ -944,14 +840,6 @@ def _create_empty(
     """
     Create an empty object for hierarchy.
 
-    :param context: The Blender context.
-    :type context: bpy.types.Context
-    :param name: Name for the empty.
-    :type name: str
-    :param parent: Parent object.
-    :type parent: Optional[bpy.types.Object]
-    :return: Created empty object.
-    :rtype: bpy.types.Object
     """
     empty = bpy.data.objects.new(name, None)
     empty.empty_display_type = 'PLAIN_AXES'
@@ -977,14 +865,6 @@ def _apply_transform(
     decomposing the matrix into rotation, translation, and scale, then
     re-arranging axes appropriately.
 
-    :param obj: The Blender object to transform.
-    :type obj: bpy.types.Object
-    :param node: The actor node with transform data.
-    :type node: ActorNode
-    :param scale: Scale factor.
-    :type scale: float
-    :return: None.
-    :rtype: None
     """
     # Build 4x4 matrix from 3x4 Carmageddon matrix.
     # Layout: x1,x2,x3, y1,y2,y3, z1,z2,z3, p1,p2,p3

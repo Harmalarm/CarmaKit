@@ -19,12 +19,6 @@ def write_car_txt(
     """
     Write a car setup text file with groove sections.
 
-    :param filepath: Output text file path.
-    :type filepath: str
-    :param objects: Objects to scan for groove data.
-    :type objects: Iterable[bpy.types.Object]
-    :return: None.
-    :rtype: None
     """
     grooves = _collect_grooves(objects)
     lines: List[str] = ["START OF GROOVE", ""]
@@ -47,10 +41,6 @@ def _collect_grooves(
     """
     Collect groove dictionaries from objects.
 
-    :param objects: Objects to scan.
-    :type objects: Iterable[bpy.types.Object]
-    :return: List of groove data dictionaries.
-    :rtype: List[Dict[str, object]]
     """
     grooves: List[Dict[str, object]] = []
     for obj in objects:
@@ -73,10 +63,6 @@ def _collect_grooves_from_custom_props(
     """
     Collect grooves from stored custom properties.
 
-    :param obj: Blender object.
-    :type obj: bpy.types.Object
-    :return: Groove data dictionaries.
-    :rtype: List[Dict[str, object]]
     """
     raw = obj.get("carmakit_grooves")
     if not raw or not hasattr(raw, "items"):
@@ -104,10 +90,6 @@ def _to_plain_dict(value: object) -> Dict[str, object]:
     """
     Convert mapping-like values to plain dicts.
 
-    :param value: Value to normalize.
-    :type value: object
-    :return: Plain dictionary.
-    :rtype: Dict[str, object]
     """
     if isinstance(value, dict):
         return {
@@ -129,10 +111,6 @@ def _to_plain_value(value: object) -> object:
     """
     Normalize nested values for groove dictionaries.
 
-    :param value: Value to normalize.
-    :type value: object
-    :return: Plain Python value.
-    :rtype: object
     """
     if isinstance(value, dict) or hasattr(value, "items"):
         return _to_plain_dict(value)
@@ -156,10 +134,6 @@ def _collect_grooves_from_collection(
     """
     Collect grooves from the UI collection on the object.
 
-    :param obj: Blender object.
-    :type obj: bpy.types.Object
-    :return: Groove data dictionaries.
-    :rtype: List[Dict[str, object]]
     """
     if not hasattr(obj, "carmakit_groove_items"):
         return []
@@ -182,12 +156,6 @@ def _groove_item_to_dict(
     """
     Convert a groove item to a data dictionary.
 
-    :param obj: Blender object.
-    :type obj: bpy.types.Object
-    :param item: Groove item instance.
-    :type item: bpy.types.PropertyGroup
-    :return: Groove data dictionary.
-    :rtype: Dict[str, object]
     """
     lollipop = GrooveProps.enum_value(
         item.lollipop,
@@ -300,10 +268,6 @@ def _format_groove_block(groove: Dict[str, object]) -> List[str]:
     """
     Format a groove dictionary as text lines.
 
-    :param groove: Groove data dictionary.
-    :type groove: Dict[str, object]
-    :return: Formatted text lines.
-    :rtype: List[str]
     """
     actor_name = _format_actor_name(str(groove.get("actor_name", "")))
     lollipop = str(groove.get("lollipop") or "not a lollipop")
@@ -323,10 +287,6 @@ def _format_path(path: Dict[str, object]) -> List[str]:
     """
     Format path data lines for a groove.
 
-    :param path: Path data dictionary.
-    :type path: Dict[str, object]
-    :return: Path lines.
-    :rtype: List[str]
     """
     path_type = str(path.get("type") or "no path")
     lines = [path_type]
@@ -374,10 +334,6 @@ def _format_animation(animation: Dict[str, object]) -> List[str]:
     """
     Format animation data lines for a groove.
 
-    :param animation: Animation data dictionary.
-    :type animation: Dict[str, object]
-    :return: Animation lines.
-    :rtype: List[str]
     """
     anim_type = str(animation.get("type") or "no animation")
     lines = [anim_type]
@@ -436,10 +392,6 @@ def _format_actor_name(name: str) -> str:
     """
     Format actor name for groove output.
 
-    :param name: Actor name.
-    :type name: str
-    :return: Actor name with .ACT suffix.
-    :rtype: str
     """
     base = name.strip()
     if base.lower().endswith(".act"):
@@ -451,10 +403,6 @@ def _format_value(value: object) -> str:
     """
     Format scalar or vector values for output.
 
-    :param value: Value to format.
-    :type value: object
-    :return: Formatted value string.
-    :rtype: str
     """
     sequence = _sequence_from_value(value)
     if sequence is not None:
@@ -469,10 +417,6 @@ def _is_sequence_value(value: object) -> bool:
     """
     Check if a value should be treated as a sequence.
 
-    :param value: Value to test.
-    :type value: object
-    :return: True when value is a non-string iterable.
-    :rtype: bool
     """
     if isinstance(value, (str, bytes, dict)):
         return False
@@ -485,10 +429,6 @@ def _sequence_from_value(value: object) -> Optional[List[object]]:
     """
     Extract a list of values from a sequence-like value.
 
-    :param value: Value to normalize.
-    :type value: object
-    :return: List of items or None when not sequence-like.
-    :rtype: Optional[List[object]]
     """
     if isinstance(value, (str, bytes, dict)):
         return None
@@ -514,10 +454,6 @@ def _format_scalar(value: object) -> str:
     """
     Format a scalar numeric value.
 
-    :param value: Value to format.
-    :type value: object
-    :return: Formatted scalar string.
-    :rtype: str
     """
     if isinstance(value, bool):
         return "1" if value else "0"
@@ -534,12 +470,6 @@ def _coerce_int(value: object, fallback: int) -> int:
     """
     Coerce values to int with a fallback.
 
-    :param value: Value to convert.
-    :type value: object
-    :param fallback: Fallback value.
-    :type fallback: int
-    :return: Integer value.
-    :rtype: int
     """
     try:
         return int(value)

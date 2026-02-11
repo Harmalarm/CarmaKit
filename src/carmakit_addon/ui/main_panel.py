@@ -26,10 +26,6 @@ class CARMAKIT_PT_main_panel(Panel):
         """
         Draw the main panel contents.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
 

@@ -11,10 +11,6 @@ def write_sdf_file(filepath: str) -> None:
 
     SDF files are empty marker files that enable editing in Plaything.
 
-    :param filepath: Path to the output SDF file.
-    :type filepath: str
-    :return: None.
-    :rtype: None
     """
     # Create an empty file.
     with open(filepath, 'wb') as f:

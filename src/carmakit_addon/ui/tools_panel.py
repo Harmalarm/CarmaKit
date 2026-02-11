@@ -22,10 +22,6 @@ class CARMAKIT_PT_tools_panel(Panel):
         """
         Draw the tools panel contents.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         layout.label(text="Expand a tool below.")

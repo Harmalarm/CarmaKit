@@ -25,12 +25,6 @@ def write_dat_file(filepath: str, dat_file: DatFile) -> None:
     """
     Write a DAT model file.
 
-    :param filepath: Path to the output DAT file.
-    :type filepath: str
-    :param dat_file: The DAT file structure to write.
-    :type dat_file: DatFile
-    :return: None.
-    :rtype: None
     """
     with open(filepath, 'wb') as f:
         write_file_header(f, FILE_TYPE_DAT)
@@ -43,12 +37,6 @@ def _write_dat_model(f: BinaryIO, model: DatModel) -> None:
     """
     Write a single model to a DAT file.
 
-    :param f: Binary file handle.
-    :type f: BinaryIO
-    :param model: The model to write.
-    :type model: DatModel
-    :return: None.
-    :rtype: None
     """
     # Write model name and attributes.
     name_bytes = model.name.encode('ascii') + b'\x00'

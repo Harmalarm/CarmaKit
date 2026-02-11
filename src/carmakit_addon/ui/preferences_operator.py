@@ -21,10 +21,6 @@ class CARMAKIT_OT_open_preferences(Operator):
         """
         Execute the operator to open preferences.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: Operator result.
-        :rtype: Set[str]
         """
         # Open preferences window.
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')

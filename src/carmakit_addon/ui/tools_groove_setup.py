@@ -17,10 +17,6 @@ def _parse_point3(value: object) -> Tuple[float, float, float]:
     """
     Parse a stored point3 into a float tuple.
 
-    :param value: Stored point3 value.
-    :type value: object
-    :return: Parsed point3 tuple.
-    :rtype: Tuple[float, float, float]
     """
     if isinstance(value, (list, tuple)) and len(value) >= 3:
         try:
@@ -57,16 +53,6 @@ def _draw_vector_row(
     """
     Draw a point3 as horizontal X/Y/Z fields.
 
-    :param layout: UI layout.
-    :type layout: bpy.types.UILayout
-    :param label: Field label.
-    :type label: str
-    :param item: Groove item instance.
-    :type item: GrooveItem
-    :param prop_name: Property name on the item.
-    :type prop_name: str
-    :return: None.
-    :rtype: None
     """
     row = layout.row(align=True)
     row.label(text=label)
@@ -79,12 +65,6 @@ def _enum_label(value: str, items: list[tuple[str, str, str]]) -> str:
     """
     Resolve an enum identifier to its display label.
 
-    :param value: Enum identifier.
-    :type value: str
-    :param items: Enum items list.
-    :type items: list[tuple[str, str, str]]
-    :return: Display label.
-    :rtype: str
     """
     for item_id, item_label, _ in items:
         if item_id == value:
@@ -113,26 +93,6 @@ class CARMAKIT_UL_groove_list(UIList):
         """
         Draw a groove list row.
 
-        :param context: Blender context.
-        :type context: Context
-        :param layout: UI layout.
-        :type layout: bpy.types.UILayout
-        :param data: Data source.
-        :type data: bpy.types.ID
-        :param item: Groove item.
-        :type item: GrooveItem
-        :param icon: Icon identifier.
-        :type icon: int
-        :param active_data: Active data block.
-        :type active_data: bpy.types.ID
-        :param active_propname: Active property name.
-        :type active_propname: str
-        :param index: Item index.
-        :type index: int
-        :param flt_flag: Filter flag.
-        :type flt_flag: int
-        :return: None.
-        :rtype: None
         """
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
@@ -159,10 +119,6 @@ class CARMAKIT_OT_add_groove_item(Operator):
         """
         Execute the add operation.
 
-        :param context: Blender context.
-        :type context: Context
-        :return: Operator result.
-        :rtype: set
         """
         obj = context.object
         if not obj:
@@ -209,10 +165,6 @@ class CARMAKIT_OT_remove_groove_item(Operator):
         """
         Execute the remove operation.
 
-        :param context: Blender context.
-        :type context: Context
-        :return: Operator result.
-        :rtype: set
         """
         obj = context.object
         if not obj:
@@ -240,10 +192,6 @@ def _sync_items_from_props(obj: bpy.types.Object) -> None:
     """
     Sync groove items collection from custom properties.
 
-    :param obj: Blender object.
-    :type obj: bpy.types.Object
-    :return: None.
-    :rtype: None
     """
     grooves = obj.get("carmakit_grooves")
     if not grooves or not hasattr(grooves, "keys"):
@@ -338,8 +286,6 @@ def _handle_active_object_change() -> None:
     """
     Refresh the groove list when the active object changes.
 
-    :return: None.
-    :rtype: None
     """
     wm = bpy.context.window_manager
     if wm.get("carmakit_syncing_grooves"):
@@ -367,12 +313,6 @@ def _depsgraph_update_handler(_scene: bpy.types.Scene, _depsgraph) -> None:
     """
     Blender depsgraph update handler.
 
-    :param _scene: Current scene.
-    :type _scene: bpy.types.Scene
-    :param _depsgraph: Depsgraph instance.
-    :type _depsgraph: bpy.types.Depsgraph
-    :return: None.
-    :rtype: None
     """
     _handle_active_object_change()
 
@@ -381,8 +321,6 @@ def register_handlers() -> None:
     """
     Register handlers for groove UI updates.
 
-    :return: None.
-    :rtype: None
     """
     handler = _depsgraph_update_handler
     if handler not in bpy.app.handlers.depsgraph_update_post:
@@ -393,8 +331,6 @@ def unregister_handlers() -> None:
     """
     Unregister handlers for groove UI updates.
 
-    :return: None.
-    :rtype: None
     """
     handler = _depsgraph_update_handler
     if handler in bpy.app.handlers.depsgraph_update_post:
@@ -418,10 +354,6 @@ class CARMAKIT_PT_tool_groove_setup(Panel):
         """
         Draw the groove setup tool.
 
-        :param context: The Blender context.
-        :type context: Context
-        :return: None.
-        :rtype: None
         """
         layout = self.layout
         box = layout.box()
@@ -535,8 +467,6 @@ def register_properties() -> None:
     """
     Register groove UI properties on Blender objects.
 
-    :return: None.
-    :rtype: None
     """
     bpy.types.Object.carmakit_groove_items = CollectionProperty(
         type=GrooveItem,
@@ -552,8 +482,6 @@ def unregister_properties() -> None:
     """
     Unregister groove UI properties from Blender objects.
 
-    :return: None.
-    :rtype: None
     """
     if hasattr(bpy.types.Object, "carmakit_groove_items"):
         del bpy.types.Object.carmakit_groove_items
