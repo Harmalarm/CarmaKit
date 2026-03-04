@@ -200,7 +200,7 @@ def create_actor_node_from_object(
     # Apply ACT attribute rules.
     if obj.type == 'MESH':
         node.name = obj.name
-        node.attributes = 0x0401
+        node.attributes = 0x0104
         node.model_name = obj.data.name
     else:
         if strip_legacy_helper_name and _is_nameless_helper_name(obj.name):

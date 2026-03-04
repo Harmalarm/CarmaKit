@@ -132,7 +132,7 @@ def _write_act_node(
                 is_root=False
             )
 
-        if wrote_start or not is_root:
+        if not is_root:
             BinaryWriter.write_record_header(
                 f,
                 ACT_RECORD_HIERARCHY_END,
