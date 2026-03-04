@@ -101,9 +101,29 @@ def _write_act_node(
         f.write(name_bytes)
 
     # Write children if present.
+    is_helper_with_children = (node.model_name is None and bool(node.children))
+    is_pp01_helper = node.name.startswith('PP01 ')
+    is_no_identifier_helper = (
+        node.name == ''
+        or node.name.upper().startswith('NO_IDENTIFIER')
+    )
+    should_write_hierarchy_start = (
+        is_helper_with_children
+        and (is_pp01_helper or is_no_identifier_helper)
+    )
+
     if legacy_hierarchy:
         # Legacy ACT files omit hierarchy start markers. Each non-root
         # node is followed by a hierarchy end marker to pop to parent.
+        wrote_start = False
+        if should_write_hierarchy_start:
+            BinaryWriter.write_record_header(
+                f,
+                ACT_RECORD_HIERARCHY_START,
+                0
+            )
+            wrote_start = True
+
         for child in node.children:
             _write_act_node(
                 f,
@@ -112,7 +132,7 @@ def _write_act_node(
                 is_root=False
             )
 
-        if not is_root:
+        if wrote_start or not is_root:
             BinaryWriter.write_record_header(
                 f,
                 ACT_RECORD_HIERARCHY_END,

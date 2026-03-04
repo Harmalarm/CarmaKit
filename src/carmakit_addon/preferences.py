@@ -132,7 +132,7 @@ class CarmaKitPreferences(AddonPreferences):
             "Enable detailed step-by-step logging during import and "
             "export operations"
         ),
-        default=False,
+        default=True,
     )  # type: ignore
 
     max_vertices_per_model: IntProperty(

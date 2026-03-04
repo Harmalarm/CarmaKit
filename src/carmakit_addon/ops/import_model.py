@@ -1,18 +1,17 @@
 """
 Model import operator for CarmaKit.
 
-This module provides the operator that imports ACT/DAT data
-into the current Blender scene.
+This module keeps the Blender operator UI and delegates import logic
+to the dedicated import domain package.
 """
 
 from typing import Set
 
-import bpy
 from bpy.props import BoolProperty, StringProperty
 from bpy.types import Context, Operator
 from bpy_extras.io_utils import ImportHelper
 
-from .. import importer
+from ..importing import ImportOptions, import_carmageddon_model
 
 
 class CARMAKIT_OT_import_model(Operator, ImportHelper):
@@ -28,7 +27,6 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
     bl_description = "Import a Carmageddon model (ACT/DAT format)"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    # File browser settings.
     filename_ext = ".act"
 
     filter_glob: StringProperty(
@@ -66,8 +64,7 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         Execute the import operation.
 
         """
-        # Build import options from operator properties.
-        options = importer.ImportOptions(
+        options = ImportOptions(
             filepath=self.filepath,
             scale=1.0,
             apply_transform=self.apply_transform,
@@ -77,16 +74,15 @@ class CARMAKIT_OT_import_model(Operator, ImportHelper):
         )
 
         try:
-            result = importer.import_carmageddon_model(context, options)
+            result = import_carmageddon_model(context, options)
             if result.success:
                 self.report(
                     {'INFO'},
                     f"Imported {result.objects_created} objects"
                 )
                 return {'FINISHED'}
-            else:
-                self.report({'ERROR'}, result.error_message)
-                return {'CANCELLED'}
+            self.report({'ERROR'}, result.error_message)
+            return {'CANCELLED'}
         except Exception as e:
             self.report({'ERROR'}, f"Import failed: {str(e)}")
             return {'CANCELLED'}
