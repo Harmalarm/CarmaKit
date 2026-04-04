@@ -62,7 +62,7 @@ class DatModel:
     """
 
     name: str = ""
-    attributes: int = 0
+    attributes: int = 1
     vertices: List[Vector3] = field(default_factory=list)
     tex_coords: List[Vector2] = field(default_factory=list)
     faces: List[Face] = field(default_factory=list)

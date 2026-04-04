@@ -1,8 +1,8 @@
 """
 Model export operator for CarmaKit.
 
-This module provides the operator that exports Blender objects
-into Carmageddon ACT/DAT/MAT formats.
+This module keeps the Blender operator UI and delegates export logic
+to the dedicated export domain package.
 """
 
 from typing import Set
@@ -12,7 +12,10 @@ from bpy.props import BoolProperty, EnumProperty, StringProperty
 from bpy.types import Context, Operator
 from bpy_extras.io_utils import ExportHelper
 
-from .. import exporter
+from ..export import ExportOptions, export_carmageddon_model
+
+
+ADDON_PACKAGE = __package__.split('.')[0]
 
 
 class CARMAKIT_OT_export_model(Operator, ExportHelper):
@@ -28,7 +31,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
     bl_description = "Export selected objects as a Carmageddon model"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
-    # File browser settings.
     filename_ext = ".act"
 
     filter_glob: StringProperty(
@@ -55,6 +57,15 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         default=True,
     )  # type: ignore
 
+    ignore_act_object_scale: BoolProperty(
+        name="Ignore Object Scale",
+        description=(
+            "Export ACT transforms with 100% scale for regular objects; "
+            "objects prefixed with $, £, !, &, or # keep their scale"
+        ),
+        default=True,
+    )  # type: ignore
+
     generate_sdf: BoolProperty(
         name="Generate SDF",
         description="Create empty SDF file for Plaything compatibility",
@@ -70,16 +81,6 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
             ('DAT_ONLY', "DAT Only", "Export only DAT mesh file"),
         ],
         default='ALL',
-    )  # type: ignore
-
-    export_kind: EnumProperty(
-        name="Export Type",
-        description="Choose whether to export a car or a track",
-        items=[
-            ('CAR', "Car", "Export using car-style ACT layout"),
-            ('TRACK', "Track", "Export using track-style ACT layout"),
-        ],
-        default='CAR',
     )  # type: ignore
 
     game_version: EnumProperty(
@@ -106,7 +107,7 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
 
         """
         try:
-            prefs = bpy.context.preferences.addons[__package__].preferences
+            prefs = bpy.context.preferences.addons[ADDON_PACKAGE].preferences
             self.game_version = prefs.game_version
         except (KeyError, AttributeError):
             pass
@@ -118,30 +119,29 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         Execute the export operation.
 
         """
-        # Build export options from operator properties.
-        options = exporter.ExportOptions(
+        options = ExportOptions(
             filepath=self.filepath,
             scale=1.0,
             selected_only=self.selected_only,
             apply_modifiers=self.apply_modifiers,
             triangulate=self.triangulate,
+            ignore_act_object_scale=self.ignore_act_object_scale,
             generate_sdf=self.generate_sdf,
             export_format=self.export_format,
-            export_kind=self.export_kind,
+            export_kind='AUTO',
             game_version=self.game_version,
         )
 
         try:
-            result = exporter.export_carmageddon_model(context, options)
+            result = export_carmageddon_model(context, options)
             if result.success:
                 self.report(
                     {'INFO'},
                     f"Exported {result.files_written} files"
                 )
                 return {'FINISHED'}
-            else:
-                self.report({'ERROR'}, result.error_message)
-                return {'CANCELLED'}
+            self.report({'ERROR'}, result.error_message)
+            return {'CANCELLED'}
         except Exception as e:
             self.report({'ERROR'}, f"Export failed: {str(e)}")
             return {'CANCELLED'}
@@ -159,11 +159,11 @@ class CARMAKIT_OT_export_model(Operator, ExportHelper):
         box.label(text="Output", icon='FILE')
         box.prop(self, "export_format")
         box.prop(self, "generate_sdf")
-        box.prop(self, "export_kind")
         box.prop(self, "game_version")
 
         box = layout.box()
         box.label(text="Transform", icon='ORIENTATION_GLOBAL')
+        box.prop(self, "ignore_act_object_scale")
 
         box = layout.box()
         box.label(text="Objects", icon='OBJECT_DATA')

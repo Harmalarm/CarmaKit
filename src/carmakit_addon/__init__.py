@@ -36,7 +36,10 @@ _classes: List[type] = [
     preferences.CarmaKitPreferences,
     ops.CARMAKIT_OT_import_model,
     ops.CARMAKIT_OT_apply_grooves,
+    ops.CARMAKIT_OT_export_track_setup,
+    ops.CARMAKIT_OT_export_car_setup,
     ops.CARMAKIT_OT_export_model,
+    ops.CARMAKIT_OT_preprocess_track,
     ui.GrooveItem,
     ui.CARMAKIT_UL_groove_list,
     ui.CARMAKIT_OT_add_groove_item,
@@ -46,6 +49,9 @@ _classes: List[type] = [
     ui.CARMAKIT_PT_tools_panel,
     ui.CARMAKIT_PT_tool_vertex_index,
     ui.CARMAKIT_PT_tool_groove_setup,
+    ui.CARMAKIT_PT_tool_track_setup,
+    ui.CARMAKIT_PT_tool_car_setup,
+    ui.CARMAKIT_PT_tool_track_preprocess,
 ]
 
 
