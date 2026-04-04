@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import bmesh
 import bpy
+from mathutils import Matrix
 
 from ..classes.dat_classes import DatFile, DatModel, Face
 from ..classes.shared_classes import Vector2, Vector3
@@ -84,16 +85,23 @@ def create_model_from_object(
 
     smoothing_groups = compute_smoothing_groups(bm)
 
+    preserve_act_scale = should_preserve_act_scale_for_object(obj)
     vertex_matrix = obj.matrix_world
     bake_static_transform = (
         options.ignore_act_object_scale
-        and not should_preserve_act_scale_for_object(obj)
+        and not preserve_act_scale
     )
     if bake_static_transform:
         vertex_matrix = obj.matrix_local
         log_debug(
             f"  Baking local transform into DAT vertices for '{obj.name}' "
             "(Apply All Transforms behavior)"
+        )
+    elif preserve_act_scale:
+        vertex_matrix = Matrix.Identity(4)
+        log_debug(
+            f"  Exporting DAT vertices in local space for preserved-scale "
+            f"object '{obj.name}'"
         )
 
     mat_name_to_index: Dict[str, int] = {}
